@@ -225,17 +225,16 @@ The orthorectification uses this information to interpolate the orthorectified p
 **The accuracy depends on the DEM and GCP quality. Due to the oblique geometry large errors can be observed in some regions.**
 
 ###Geographic coordinates of the pixels
-The 3D geographic coordinates of each pixels can be saved as tiff images.
+The 3D geographic coordinates of each pixel can be saved as tiff images.
 
 ###Geometry analysis
-This function computes the surface of a pixel which varies with the distance and the angle of incidence.
-
+This function computes three plots. The first shows the surface of a pixel which varies with the distance and the angle of incidence.
 The two other plots show the angle of incidence.
 
-This function is usefull to choose a good camera location and orientation to sense a landscape.
+This function is usefull to choose a good camera location to sense a landscape.
 
 ###Footprint
-This functions generate a vector layer which contains the area sensed by the camera.
+This function generates a vector layer which contains the area sensed by the camera.
 
 
 
