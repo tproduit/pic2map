@@ -88,6 +88,7 @@ The digitization of GCP is an iterative process.
 Once that a camera orientation is obtained, the digitization of accurate GCP is facilated.
 
 GCP can be loaded and saved as `.csv` with the ![save](images/toolbar3.png) and ![load](images/toolbar4.png) buttons.
+The headings of the columns are: `line,column,X,Y,Z`
 
 The GCP digitalization interface is divided in five main areas:
 
