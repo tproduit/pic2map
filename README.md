@@ -174,11 +174,11 @@ The goal of the orientation is to compute the location, the orientation (azimuth
 
 ###Rough orientation
 If the rough location of the camera is unknown, you can use the `Add --> Photo` tool of Google Earth. 
-The picture orientation can be recorded as a KML and be loaded with pic2map.
+The picture orientation can be recorded as a KML file and loaded with pic2map.
 
 
 ###Accurate orientation
-The camera orientation windows opens with a click on the ![Camera Orientation](images/toolbar9.png) button. 
+The camera orientation window opens with a click on the ![Camera Orientation](images/toolbar9.png) button. 
 A camera parameter can be:
 
 * **Free**: The parameter is unknown and has to be computed. If all parameters are free at least 6 GCPs are required.
@@ -208,8 +208,7 @@ You can press on `label settings` for controlling label appearance.
 The monoplotter can be clicked with **`Ctrl+click`**. 
 You can choose to measure objects in the map plane (2D) or in 3D (on the DEM surface).
 
-The measure tool doesn't measure in the picture directly. 
-It projects the click of the mouse in the canvas. 
+The measure tool doesn't measure directly in the picture but projects the click of the mouse in the canvas. 
 This implies a strange behavior: if a precise measurement is required, you have to zoom in the canvas.
 
 ###Digitization of new vector layer
@@ -228,7 +227,7 @@ The orthorectification uses this information to interpolate the orthorectified p
 The 3D geographic coordinates of each pixel can be saved as tiff images.
 
 ###Geometry analysis
-This function computes three plots. The first shows the surface of a pixel which varies with the distance and the angle of incidence.
+This function computes three plots. The first plot shows the surface of a pixel which varies with the distance and the angle of incidence.
 The two other plots show the angle of incidence.
 
 This function is usefull to choose a good camera location to sense a landscape.
