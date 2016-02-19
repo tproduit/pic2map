@@ -1,0 +1,22 @@
+# python byte code files
+*.pyc
+
+/bin
+/include
+/lib
+/local
+/ui/resources_rc.py
+/ui/ui_*.py
+./dialogs.ini
+
+
+# deployment archives
+/*.zip
+
+# text editors temporary files
+*.swp
+*~
+
+# nose testing output
+/.coverage
+/.noseids

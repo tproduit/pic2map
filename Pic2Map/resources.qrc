@@ -1,0 +1,21 @@
+<RCC>
+  <qresource prefix="/plugins/Pic2Map" >
+     <file>icon.png</file>
+	 <file>toolbar1.png</file>
+	 <file>toolbar2.png</file>
+	 <file>toolbar3.png</file>
+	 <file>toolbar4.png</file>
+	 <file>toolbar5.png</file>
+	 <file>toolbar6.png</file>
+	 <file>toolbar7.png</file>
+	 <file>toolbar8.png</file>
+	 <file>toolbar9.png</file>
+	 <file>toolbar10.png</file>
+	 <file>toolbar11.png</file>
+	 <file>toolbar12.png</file>
+	 <file>toolbar13.png</file>
+	 <file>toolbar14.png</file>
+	 <file>toolbar15.png</file>
+	 <file>toolbar16.png</file>
+  </qresource>
+</RCC>

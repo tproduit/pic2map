@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<PhotoOverlay id="space-needle">
+    <name>left</name>
+    <Camera>
+      <longitude>8.0932998841</longitude>
+      <latitude>46.4314217451</latitude>
+      <altitude>2929.0315707980</altitude>
+      <heading>-63.3746430701</heading>
+      <tilt>78.7204365914</tilt>
+      <roll>0.0</roll>
+      <altitudeMode>absolute</altitudeMode>
+    </Camera>
+    <Style>
+        <IconStyle>
+            <Icon>
+                <href>:/camera_mode.png</href>
+            </Icon>
+        </IconStyle>
+        <ListStyle>
+            <listItemType>check</listItemType>
+            <ItemIcon>
+                <state>open closed error fetching0 fetching1 fetching2</state>
+                <href>http://maps.google.com/mapfiles/kml/shapes/camera-lv.png</href>
+            </ItemIcon>
+            <bgColor>00ffffff</bgColor>
+            <maxSnippetLines>2</maxSnippetLines>
+        </ListStyle>
+    </Style>
+    <Icon>
+      <href>C:/datatest/aletsch/left/left.jpg</href>
+    </Icon>
+    <rotation>-2.4000000000</rotation>
+    <ViewVolume>
+      <leftFov>-31.5386631717</leftFov>
+      <rightFov>31.5386631717</rightFov>
+      <bottomFov>-23.5000000000</bottomFov>
+      <topFov>23.5000000000</topFov>
+      <near>300.0000000000</near>
+    </ViewVolume>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>8.0932998841,46.4314217451,2929.0315707980</coordinates>      
+    </Point>
+</PhotoOverlay>
+</kml>
