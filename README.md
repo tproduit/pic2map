@@ -61,6 +61,9 @@ In this case, use the following commands and try again:
 
     `sudo apt-get install python python-opengl python-qt4 python-qt4-gl`
 
+If you get a scipy error run this command:
+  `sudo apt-get install python-numpy python-scipy python-matplotlib`
+
 
 4. Data requirement
 ================
