@@ -52,9 +52,10 @@ The plugin was tested with QGIS 3.4.
  
 OpenGL is required to show the 3D view. To install openGL in a windows environment:
 
-`python -m pip install pyOpenGL
+```
+python -m pip install pyOpenGL
 python -m pip install pyOpenGL_accelerate
-`
+```
 
 
 # Data requirement
