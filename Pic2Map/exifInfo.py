@@ -1,4 +1,3 @@
-
 """
 /***************************************************************************
  *                                                                         *
@@ -9,13 +8,18 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import division
 
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-import Image
+from builtins import str
+from past.utils import old_div
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PIL import Image
 from PIL.ExifTags import TAGS
-from ui_exif2 import Ui_Exif2
+from .ui_exif2 import Ui_Exif2
 from qgis.core import *
 from qgis.gui import *
 from numpy import sqrt
@@ -39,7 +43,7 @@ class ExifInfo(QDialog):
         self.diag = sqrt(sizePicture[0]**2+sizePicture[1]**2)
         if raw != None and any(raw):
             dict = None
-            for (k,v) in raw.iteritems():
+            for (k,v) in raw.items():
                 if TAGS.get(k) == 'GPSInfo':
                     dict = v
                 if TAGS.get(k) == 'FocalLength':
@@ -51,16 +55,16 @@ class ExifInfo(QDialog):
                 crsTarget = QgsCoordinateReferenceSystem(crs.postgisSrid())
                 crsSource = QgsCoordinateReferenceSystem(4326)
                 xform = QgsCoordinateTransform(crsSource, crsTarget)
-                LocalPos = xform.transform(QgsPoint(Est,Nord))
+                LocalPos = xform.transform(QgsPointXY(Est,Nord))
                 text += 'Nord: ' + str(LocalPos[0])
                 text += '\nEst: ' +str(LocalPos[1])
                 text += '\n\n'
  
             text += '============================\n'
             text += 'Raw EXIF data:'
-            for (k,v) in raw.iteritems():
+            for (k,v) in raw.items():
                 test = True
-                if isinstance(v, (int, long, float, complex, bool)):
+                if isinstance(v, (int, float, complex, bool)):
                     text += "\n  " + str(TAGS.get(k)) + ": " + str(v)
                 else:
                     for c in str(v):
@@ -83,8 +87,8 @@ class ExifInfo(QDialog):
             except ValueError:
                 QMessageBox.warning(QMainWindow(),"Error","Float format not valid")
             else:
-                FocalLengthMM = self.FocalLength[0]/self.FocalLength[1]
-                focalPixel = round(FocalLengthMM/sensorDiagFloat*self.diag,2)
+                FocalLengthMM = old_div(self.FocalLength[0],self.FocalLength[1])
+                focalPixel = round(old_div(FocalLengthMM,sensorDiagFloat*self.diag),2)
                 self.ui_exif_info.lineFocalPixel.setText(str(focalPixel))
                 self.fixFocalSignal.emit(focalPixel)
         else: 

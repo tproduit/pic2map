@@ -4,7 +4,7 @@
 name = Pic2Map
 email= timothee.produit@gmail.com
 author = Gillian Milani and Timothée Produit
-qgisMinimumVersion  = 2.8
+qgisMinimumVersion  = 3.0
 description = Compute the 3D orientation of a picture and provide the interaction between the picture and the map. 
 version = version 3.0
 ; end of mandatory metadata

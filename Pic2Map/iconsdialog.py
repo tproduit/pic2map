@@ -9,14 +9,16 @@
  ***************************************************************************/
 """
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from ui_icons import Ui_iconsDialog
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from .ui_icons import Ui_iconsDialog
 from functools import partial
 
-class icons_dialog(QtGui.QDialog):
+class icons_dialog(QtWidgets.QDialog):
     def __init__(self, iconSet):
-        QtGui.QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         self.uiIcons = Ui_iconsDialog()
         self.uiIcons.setupUi(self,iconSet)
         self.center()
@@ -26,12 +28,12 @@ class icons_dialog(QtGui.QDialog):
                 
     def center(self):
         qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
         
     def showColor(self, frame):
-        col = QtGui.QColorDialog.getColor()
+        col = QtWidgets.QColorDialog.getColor()
         if col.isValid():
             frame.setStyleSheet("QWidget { background-color: %s }" % col.name())
 

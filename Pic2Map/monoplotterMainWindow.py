@@ -7,9 +7,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-"""
 
-"""
  The monoplotter consists in the final step of the plugin.
  Both pose estimation approaches launch this code. 
  The background principle is quite easy: The landscape picture
@@ -18,35 +16,34 @@
  transparent. Now, if you click on the window, you think you
  click on the picture, but in fact, you click on the DEM.
 """
+from __future__ import division
+from __future__ import print_function
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
-from QGL_monoplotter import QGLMonoplotter
-from ui_monoplotter import Ui_Monoplotter
-from drapping import drappingMain
-from ui_buffering import Ui_progressBar
-from labelSettingsDialog import label_dialog
-from measure3D import mesure3DDialog
-from ortho import viewOrtho_class
+from .QGL_monoplotter import QGLMonoplotter
+from .ui_monoplotter import Ui_Monoplotter
+from .drapping import drappingMain
+from .ui_buffering import Ui_Form
+from .labelSettingsDialog import label_dialog
+from .measure3D import mesure3DDialog
+from .ortho import viewOrtho_class
 from osgeo import gdal, osr, ogr
-
 import os
-#import ogr
-
-import Image
-
+from PIL import Image
 from scipy import misc
 from scipy.spatial import KDTree
-
 from numpy import zeros, concatenate, dot, linalg, pi, arctan2, ones, array
 import numpy as np
-
 import matplotlib.pyplot as plt
 from matplotlib import colors
-
 #from matplotlib.figure import Figure
 #from matplotbib import axes
 
@@ -57,14 +54,14 @@ from matplotlib import colors
 #from OpenGL.GL.framebufferobjects import *
 from OpenGL.GL import *
 
-class MonoplotterMainWindow(QtGui.QMainWindow):
+class MonoplotterMainWindow(QtWidgets.QMainWindow):
     
     openOrtho = pyqtSignal()
     clearMapTool= pyqtSignal()
     closingMonoplot = pyqtSignal()
     
     def __init__(self, iface, pointBuffer, picture_name, ParamPose, dem_box, cLayer,pathToData, crs,demName, isFrameBufferSupported, demMax, demMin):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.iface = iface
         self.cLayer = cLayer
         self.dem_box = dem_box
@@ -119,6 +116,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         #Connect the footprint button with its function
         self.ui.footprint.clicked.connect(self.footprint)
         
+        
         if not self.useOrthoImage:
             self.ui.horizontalSlider.valueChanged.connect(self.changeTransparency)
         
@@ -148,7 +146,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         imZ = misc.imresize(self.Zmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
         
         step = 2 #jump above one pixel: fasten computation,
-        sMat = np.zeros((imX.shape[0]/step, imX.shape[1]/step))
+        sMat = np.zeros((old_div(imX.shape[0],step), old_div(imX.shape[1],step)))
         
         las = []
         
@@ -176,10 +174,10 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                     d = np.linalg.norm(UR-LR)
                     
         
-                    unita = (UL-UR)/a
-                    unitb = (UL-LL)/b
-                    unitc = (LL-LR)/c
-                    unitd = (UR-LR)/d
+                    unita = old_div((UL-UR),a)
+                    unitb = old_div((UL-LL),b)
+                    unitc = old_div((LL-LR),c)
+                    unitd = old_div((UR-LR),d)
                     
                     #Compute angle between vectors
                     alpha = np.arccos(np.dot(unita,unitd))
@@ -212,7 +210,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         #Compute angle between viewing vector and terrain
         #################################################
         step=2
-        alphaMat = np.zeros((imX.shape[0]/step, imX.shape[1]/step))
+        alphaMat = np.zeros((old_div(imX.shape[0],step), old_div(imX.shape[1],step)))
         
         ii = 0
         for i in range(0,imX.shape[0]-step,step):
@@ -238,7 +236,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                     c = UL-XYZcam
                     
                     #Angle between the ray and the normal
-                    res = np.arctan2(np.linalg.norm(np.cross(normal,c)), np.dot(normal,c))*180/np.pi
+                    res = old_div(np.arctan2(np.linalg.norm(np.cross(normal,c)), np.dot(normal,c))*180,np.pi)
                     res = np.min([res,180-res])
                     
                     #Angle between the ray and the plane
@@ -386,11 +384,11 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         
         # Save extent to a new Shapefile
         path = self.pathToData + "/footprint.shp"
-        shapeSaveName = QtGui.QFileDialog.getSaveFileName(self, "Save Footprint" ,path, "Shape file (*.shp)");
+        shapeSaveName = QtWidgets.QFileDialog.getSaveFileName(self, "Save Footprint" ,path, "Shape file (*.shp)");[0]
         if shapeSaveName:
 
             
-            outShapefile = shapeSaveName
+            outShapefile = shapeSaveName[0]
             outDriver = ogr.GetDriverByName("ESRI Shapefile")
             
             # Remove output shapefile if it already exists
@@ -544,8 +542,8 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         
         #Compute z-buffer coordinates
         inP = np.zeros((xLine.shape[1],4))
-        inP[:,0] = (xLine-np.float32(self.qgl_window.viewport[0]))/self.qgl_window.viewport[2]*2.0-1.0
-        inP[:,1] = (yLine-np.float32(self.qgl_window.viewport[1]))/self.qgl_window.viewport[3]*2.0-1.0
+        inP[:,0] = old_div((xLine-np.float32(self.qgl_window.viewport[0])),self.qgl_window.viewport[2])*2.0-1.0
+        inP[:,1] = old_div((yLine-np.float32(self.qgl_window.viewport[1])),self.qgl_window.viewport[3])*2.0-1.0
         inP[:,2] = 2.0*zLine-1.0
         inP[:,3] = np.ones(xLine.shape)
         
@@ -579,21 +577,23 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         if self.noSave == False:
         
             path = self.pathToData + "/X.tif"
-            imageSaveName = QtGui.QFileDialog.getSaveFileName(self, "Save X" ,path,"Images (*.tif)");
-            if imageSaveName:
-                Image.fromarray(X).save(imageSaveName)
+            imageSaveName = QtWidgets.QFileDialog.getSaveFileName(self, "Save X" ,path,"Images (*.tif)")
+            if imageSaveName[0] != "":
+                img = Image.fromarray(X)
+                img.save(imageSaveName[0])
             
-            index = imageSaveName.rfind("/")
-            path = imageSaveName[0:index]+ "/Y.tif"
-            imageSaveName = QtGui.QFileDialog.getSaveFileName(self, "Save Y" ,path,"Images (*.tif)");
-            if imageSaveName:
-                Image.fromarray(Y).save(imageSaveName)
+            imageSaveNamePath = imageSaveName[0] 
+            index = imageSaveNamePath.rfind("/")
+
+            path = imageSaveNamePath[0:index]+ "/Y.tif"
+            imageSaveName = QtWidgets.QFileDialog.getSaveFileName(self, "Save Y" ,path,"Images (*.tif)")
+            if imageSaveName[0] != "":
+                Image.fromarray(Y).save(imageSaveName[0])
             
-            index = imageSaveName.rfind("/")
-            path = imageSaveName[0:index]+ "/Z.tif"
-            imageSaveName = QtGui.QFileDialog.getSaveFileName(self, "Save Z" ,path,"Images (*.tif)");
-            if imageSaveName:
-                Image.fromarray(Z).save(imageSaveName)
+            path = imageSaveNamePath[0:index]+ "/Z.tif"
+            imageSaveName = QtWidgets.QFileDialog.getSaveFileName(self, "Save Z" ,path,"Images (*.tif)")
+            if imageSaveName[0] != "":
+                Image.fromarray(Z).save(imageSaveName[0])
                 
 
         
@@ -627,8 +627,8 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                 try:
                     if os.path.isfile(file_path):
                         os.unlink(file_path)
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
         
     def startMeasure3D(self, state):
   
@@ -675,6 +675,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         bar.progressBar = bar.ui_progbar.progressBar
         bar.show()
         bar.progressBar.setValue(1)
+        QApplication.processEvents()
         
         A = dot(self.qgl_window.modelview, self.qgl_window.projection)
         self.m = linalg.pinv(A).transpose()
@@ -701,7 +702,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         fTempo4 = dot(f1, self.qgl_window.projection[:,0])              
         fTempo5 = dot(f1, self.qgl_window.projection[:,1])    
         fTempo6 = dot(f1, self.qgl_window.projection[:,2])
-        fTempo7 = -1.0/fTempo2
+        fTempo7 = old_div(-1.0,fTempo2)
         fTempo4 *= fTempo7
         fTempo5 *= fTempo7
         fTempo6 *= fTempo7
@@ -719,10 +720,10 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                 z_buff = zBuffer[int(winx),int(winy)]
                 # check if the reprojection falls near the initial coordinates
                 # which is a way to test if the vertex is visible, not hidden
-                if (winz-z_buff)/(1-winz) < 0.01:
+                if old_div((winz-z_buff),(1-winz)) < 0.01:
                     # The projected coordinate is given to the vertex
                     # The picture gets drapped on the DEm
-                    texture[i] = [winx/viewport2, winy/viewport3]
+                    texture[i] = [old_div(winx,viewport2), old_div(winy,viewport3)]
                 else:
                     # Here appears a small trick. Only someone who know openGL can understand 
                     # the machinery behind the next line
@@ -740,15 +741,17 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
             #progress bar
             r0 = r 
             i += 1
-            r = (i*99)/(self.qgl_window.l_nord*self.qgl_window.l_est)
+            r = old_div((i*99),(self.qgl_window.l_nord*self.qgl_window.l_est))
             if r != r0:
                 bar.progressBar.setValue(r)
+                QApplication.processEvents()
                 
         self.texture = texture
         
         #Get XYZ coordinates
-        self.noSave=True
-        self.saveXYZmatrix()
+        if hasattr(self, 'Xmat') == False:
+            self.noSave=True
+            self.saveXYZmatrix()
         
         # Create the drapping window
         if not forPolygon:
@@ -765,9 +768,9 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
     def saveImage(self):
         imgSave = self.qgl_window.grabFrameBuffer()
         path = self.pathToData + "/image.png"
-        imageSaveName = QtGui.QFileDialog.getSaveFileName(self,"save file dialog" ,path,"Images (*.png *.xpm *.jpg)");
+        imageSaveName = QtWidgets.QFileDialog.getSaveFileName(self,"save file dialog" ,path,"Images (*.png *.xpm *.jpg)");[0]
         if imageSaveName:
-            imgSave.save(imageSaveName)
+            imgSave.save(imageSaveName[0])
         
     def get_box(self):
         # This function help to decrease the number of feature to test for displaying in the monoplotter.
@@ -787,22 +790,22 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
             dx = pos[0]-lookat[0]
             dy = pos[2]-lookat[2]
             heading = arctan2(-dy,dx)
-            if heading > 3*pi/2 or heading < -3*pi/2:
+            if heading > old_div(3*pi,2) or heading < old_div(-3*pi,2):
                 x_min = a
                 y_min = b
                 x_max = -pos[0]
                 y_max = d
-            elif heading > pi/2:
+            elif heading > old_div(pi,2):
                 x_min = a
                 y_min = pos[2]
                 x_max = c
                 y_max = d
-            elif heading > -pi/2:
+            elif heading > old_div(-pi,2):
                 x_min = -pos[0]
                 y_min = b
                 x_max = c
                 y_max = d
-            elif heading > -3*pi/2:
+            elif heading > old_div(-3*pi,2):
                 x_min = a
                 y_min = b
                 x_max = c
@@ -824,7 +827,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         # the same symbols in the monoplotter.
         # The symbology is not read for each feature, but for a whole layer. Then a array filled with indices
         # is used for given the right symbol to the right feature according to atttributes
-        layers = QgsMapLayerRegistry.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
         layerType = []
         symbolParam = []
         symbolAttributes = []
@@ -843,7 +846,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         polygoneLayerCount = 0
         self.polygonClipedLayers = []
         
-        for name, layer in layers.iteritems():
+        for name, layer in layers.items():
             try:
                 # Check if Labels are enabled on the current layer
                 WidthSize = []
@@ -852,12 +855,12 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                 att = 0
                 RenderType = None
                 #Layer type is 0 for vector layers
-                if layer.type() ==0 and self.iface.legendInterface().isLayerVisible(layer):
+                if layer.type() ==0  and self.iface.layerTreeView().layerTreeModel().rootGroup().findLayer(layer).itemVisibilityChecked() :
                     palyr = QgsPalLayerSettings() 
-                    palyr.readFromLayer(layer) 
+                    #palyr.readFromLayer(layer) 
                     if layer.geometryType() == 2:
                         pass
-                    elif not palyr.enabled:
+                    elif layer.labeling() is None:
                         labelParam.append(-1)
 
                     else:
@@ -865,12 +868,12 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                         id = -1
                         for field in fields:
                              id+=1
-                             if str(field.name()) == palyr.fieldName:
+                             if str(field.name()) == layer.name:
                                  att = id
                         labelParam.append(att)
                         
                     test_oneSymbolLayer = -1
-                    renderer = layer.rendererV2()
+                    renderer = layer.renderer()
                     new_graduation = []
                     new_categorie = []
                     new_color = []
@@ -881,7 +884,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                         layerType.append(0)
                         if renderer.type() == "singleSymbol":
                             symbolParam.append(0)
-                            for i in xrange(renderer.symbol().symbolLayerCount()):
+                            for i in range(renderer.symbol().symbolLayerCount()):
                                 lyr = renderer.symbol().symbolLayer(i)
                                 WidthSize = lyr.size()
                                 Color = lyr.color().getRgb()
@@ -896,7 +899,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                             for ran in renderer.ranges():
                                   new_graduation.append([ran.lowerValue(),ran.upperValue()])
                                   test_oneSymbolLayer -= 1
-                                  for i in xrange(ran.symbol().symbolLayerCount()):
+                                  for i in range(ran.symbol().symbolLayerCount()):
       
                                       lyr = ran.symbol().symbolLayer(i)
                                       test_oneSymbolLayer += 1
@@ -913,7 +916,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                             for cat in renderer.categories():
                                 new_categorie.append(cat.value())
                                 test_oneSymbolLayer -= 1
-                                for i in xrange(cat.symbol().symbolLayerCount()):
+                                for i in range(cat.symbol().symbolLayerCount()):
                                       lyr = cat.symbol().symbolLayer(i)
                                       WidthSize = lyr.size()
                                       Color = lyr.color().getRgb()
@@ -926,7 +929,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                     elif layer.geometryType() == 1:
                         layerType.append(1)   
                         if renderer.type() == "singleSymbol":
-                            for i in xrange(renderer.symbol().symbolLayerCount()):
+                            for i in range(renderer.symbol().symbolLayerCount()):
                                 symbolParam.append(0)
                                 lyr = renderer.symbol().symbolLayer(i)
                                 WidthSize = lyr.width()
@@ -941,7 +944,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                             for ran in renderer.ranges():
                                   new_graduation.append([ran.lowerValue(),ran.upperValue()])
                                   test_oneSymbolLayer -= 1
-                                  for i in xrange(ran.symbol().symbolLayerCount()):
+                                  for i in range(ran.symbol().symbolLayerCount()):
                                       lyr = ran.symbol().symbolLayer(i)
                                       WidthSize = lyr.width()
                                       Color = lyr.color().getRgb()
@@ -958,7 +961,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                             for cat in renderer.categories():
                                 new_categorie.append(cat.value())
                                 test_oneSymbolLayer -= 1
-                                for i in xrange(cat.symbol().symbolLayerCount()):
+                                for i in range(cat.symbol().symbolLayerCount()):
                                       lyr = cat.symbol().symbolLayer(i)
                                       WidthSize = lyr.width()
                                       Color = lyr.color().getRgb()
@@ -985,7 +988,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                             self.getPolygons(layer, path)
                             
                             if renderer.type() == "singleSymbol":
-                                 for i in xrange(renderer.symbol().symbolLayerCount()):
+                                 for i in range(renderer.symbol().symbolLayerCount()):
                                     lyr = renderer.symbol().symbolLayer(i)
                                     self.symbolParamPolygon.append(0)
                                     Color = lyr.color().getRgb()
@@ -998,7 +1001,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                                 for ran in renderer.ranges():
                                       gradPolygon.append([ran.lowerValue(),ran.upperValue()])
                                       test_oneSymbolLayer -= 1
-                                      for i in xrange(ran.symbol().symbolLayerCount()):
+                                      for i in range(ran.symbol().symbolLayerCount()):
                                           lyr = ran.symbol().symbolLayer(i)
                                           Color = lyr.color().getRgb()
                                           test_oneSymbolLayer += 1
@@ -1010,7 +1013,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                                 for cat in renderer.categories():
                                     catPolygon.append(cat.value())
                                     test_oneSymbolLayer -= 1
-                                    for i in xrange(cat.symbol().symbolLayerCount()):
+                                    for i in range(cat.symbol().symbolLayerCount()):
                                           lyr = cat.symbol().symbolLayer(i)
                                           Color = lyr.color().getRgb()
                                           test_oneSymbolLayer += 1
@@ -1025,7 +1028,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                     
                     if test_oneSymbolLayer:
                         test_oneSymbolLayer += 1
-                        raise UserWarning, "Multiband layer selected"
+                        raise UserWarning("Multiband layer selected")
 
                     if layer.geometryType() != 2:
                         symbolGraduations.append(new_graduation)
@@ -1033,7 +1036,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                         symbolColor.append(new_color)
                         symbolSize.append(new_size)
                         symbolAttributes.append(att)
-            except UserWarning, e:
+            except UserWarning as e:
                 QMessageBox.warning(self, "Symbology - Error", "Failed update icons, Unsupported Symbology: %s " %e)
         self.qgl_window.defSymbology(layerType,symbolParam,symbolGraduations,symbolCategories,symbolColor,symbolSize)
         self.layerType = layerType
@@ -1058,8 +1061,8 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         name = path + 'raster12.tiff'
         self.getOrtho(True)
         meterPerPixel = 10
-        totPixN = (self.qgl_window.l_nord/meterPerPixel)*self.qgl_window.resolution
-        totPixE = (self.qgl_window.l_est/meterPerPixel)*self.qgl_window.resolution
+        totPixN = (old_div(self.qgl_window.l_nord,meterPerPixel))*self.qgl_window.resolution
+        totPixE = (old_div(self.qgl_window.l_est,meterPerPixel))*self.qgl_window.resolution
         ParamViewport = [0,0,1,1]
         orthoSavedParam = [totPixN, totPixE, ParamViewport]
         """
@@ -1134,7 +1137,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
             while count < 4 and not done:
                 try:
                     driver = ogr.GetDriverByName("ESRI Shapefile")
-                    myfilepath= os.path.dirname( unicode(layer.dataProvider().dataSourceUri() ) )
+                    myfilepath= os.path.dirname( str(layer.dataProvider().dataSourceUri() ) )
                     layerName2 = myfilepath + "/" +str(layer.name())+ ".shp"
                     layerName2 = layerName2.replace("\\","/")
             
@@ -1234,7 +1237,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         
     def preparePurpleCross(self,x,y):
         dataProvider =  self.cLayer.dataProvider()
-        ident = dataProvider.identify(QgsPoint(x,y),QgsRaster.IdentifyFormatValue).results()
+        ident = dataProvider.identify(QgsPointXY(x,y),QgsRaster.IdentifyFormatValue).results()
         value = ident.get(1)
 
         self.qgl_window.purpleCross(-x,value,y)
@@ -1253,7 +1256,7 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         self.qgl_window.clearLayers()
         if not boolSymbology:
             self.getSymbology()
-        layers = QgsMapLayerRegistry.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
 
         
         dataProvider =  self.cLayer.dataProvider()
@@ -1262,14 +1265,15 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         request.setFilterRect(box)
         counter = -1
         counterPolygon = -1
-        for name, layer in layers.iteritems():
+        for name, layer in layers.items():
 
             pointArrayXYZ = []
             LineArrayXYZ = []
             AttributeToSizeColorArray = []
             labels = []
-            if layer.type() == 0 and self.iface.legendInterface().isLayerVisible(layer):
-
+            if layer.type() == 0 and self.iface.layerTreeView().layerTreeModel().rootGroup().findLayer(layer).itemVisibilityChecked() :
+                print(layer)
+                layer
                 if layer.geometryType() != 2: 
   
                     counter += 1
@@ -1319,12 +1323,12 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
                         iter2 = layer.getFeatures()
                         for feature in iter2:
                             geom = feature.geometry()
-                            l = geom.asPolyline()
+                            l = geom.asMultiPolyline()
                             new_line = []
-                            for point in l:
-                                x = -point.x()
-                                y = point.y()
-                                ident = dataProvider.identify(point,QgsRaster.IdentifyFormatValue).results()
+                            for index in range(len(l[0])):
+                                x = -l[0][index].x()
+                                y = l[0][index].y()
+                                ident = dataProvider.identify(l[0][index],QgsRaster.IdentifyFormatValue).results()
                                 value = ident.get(1)
                                 new_line.append([x,value,y])
                             if len(new_line)>1:
@@ -1394,10 +1398,10 @@ class MonoplotterMainWindow(QtGui.QMainWindow):
         return -1
                     
         
-class progress_bar(QtGui.QWidget):
+class progress_bar(QtWidgets.QWidget):
     def __init__(self):
-        QtGui.QDialog.__init__(self)
-        self.ui_progbar = Ui_progressBar()
+        QtWidgets.QDialog.__init__(self)
+        self.ui_progbar = Ui_Form()
         self.ui_progbar.setupUi(self)
         
         

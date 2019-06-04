@@ -18,10 +18,17 @@
  The bounding box chosen for saving the raster is here called the "pink box"
  in reference to its color.
 """
+from __future__ import division
+from __future__ import print_function
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4.QtOpenGL import *
+from builtins import range
+from builtins import object
+from past.utils import old_div
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtOpenGL import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
@@ -31,12 +38,10 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 from OpenGL.arrays import ArrayDatatype as ADT
 from osgeo import gdal, osr
 from PIL import Image
-
 from scipy import interpolate, misc
 import numpy as np
 import matplotlib.pyplot as plt
 from osgeo import ogr
-
 
 
 class viewOrtho_class(QGLWidget):
@@ -57,8 +62,8 @@ class viewOrtho_class(QGLWidget):
         self.res =  pointBuffer.res
         self.picture_name = picture_name
         self.dem_box = pointBuffer.dem_box
-        self.offsetEst = (self.dem_box[2]-self.dem_box[0])/2 
-        self.offsetNorth = (self.dem_box[3]-self.dem_box[1])/2
+        self.offsetEst = old_div((self.dem_box[2]-self.dem_box[0]),2) 
+        self.offsetNorth = old_div((self.dem_box[3]-self.dem_box[1]),2)
         self.modelview = modelview
         self.projection = projection
         self.viewport = viewport
@@ -72,11 +77,11 @@ class viewOrtho_class(QGLWidget):
         
         self.countVertices = len(self.numpy_verts)
 
-        index = (self.countVertices)/2
+        index = old_div((self.countVertices),2)
 
         #Initialize the pink bounding box
-        indexLD = (self.countVertices+self.l_nord*3)/4
-        indexRU = (self.countVertices*3+self.l_nord)/4
+        indexLD = old_div((self.countVertices+self.l_nord*3),4)
+        indexRU = old_div((self.countVertices*3+self.l_nord),4)
         self.boxLeftUp = [self.numpy_verts[indexLD][0],self.numpy_verts[indexLD][2]]
         self.boxRightDown = [self.numpy_verts[indexRU][0],self.numpy_verts[indexRU][2]]
         
@@ -110,7 +115,7 @@ class viewOrtho_class(QGLWidget):
             if result[0]<self.boxLeftUp[0] and result[2]<self.boxLeftUp[1] :
                 self.boxRightDown = [result[0],result[2]]
                 self.last_pos = event.pos()
-                self.updateGL()
+                self.update()
                 self.getBound.emit([self.boxLeftUp,self.boxRightDown])
 
     def paintGL(self):
@@ -120,9 +125,9 @@ class viewOrtho_class(QGLWidget):
          glMatrixMode(GL_MODELVIEW)
          glLoadIdentity()
          if (self.l_est) % 2 == 0:
-            index = (self.countVertices+self.l_nord)/2
+            index = old_div((self.countVertices+self.l_nord),2)
          else: 
-             index = (self.countVertices)/2
+             index = old_div((self.countVertices),2)
          gluLookAt(self.numpy_verts[index][0],self.maximum+5000, self.numpy_verts[index][2],
                 self.numpy_verts[index][0],self.maximum,self.numpy_verts[index][2],
                  0.0, 0.0, 1.0)
@@ -190,12 +195,12 @@ class viewOrtho_class(QGLWidget):
     def getViewPortZoom(self):
         winx, winy, winz = gluProject(self.boxLeftUp[0],0,  self.boxLeftUp[1], self.modelview_new, self.projection_new, self.viewport_new)
         winx2, winy2, winz2 = gluProject(self.boxRightDown[0],0,  self.boxRightDown[1], self.modelview_new, self.projection_new, self.viewport_new)
-        self.ParamViewport = [winx/self.viewport_new[2], winy2/self.viewport_new[3], winx2/self.viewport_new[2], winy/self.viewport_new[3]]
+        self.ParamViewport = [old_div(winx,self.viewport_new[2]), old_div(winy2,self.viewport_new[3]), old_div(winx2,self.viewport_new[2]), old_div(winy,self.viewport_new[3])]
         
     def saveOrtho(self, name = None):
-            self.updateGL()
+            self.update()
             glViewport(0,0,self.totPixE,self.totPixN)
-            self.updateGL()
+            self.update()
             if self.isFrameBufferSupported:
                 glReadBuffer(GL_COLOR_ATTACHMENT0)
             data = glReadPixels(self.orthoViewPort[0],
@@ -206,7 +211,7 @@ class viewOrtho_class(QGLWidget):
             
             imgSave = Image.fromstring("RGB", (self.orthoViewPort[2]-self.orthoViewPort[0],self.orthoViewPort[3]-self.orthoViewPort[1]), data)
             if name == None:
-                imageSaveName = QFileDialog.getSaveFileName(self,"save file dialog" ,"/raster.tiff","Images (*.tiff *.png)")
+                imageSaveName = QFileDialog.getSaveFileName(self,"save file dialog" ,"/raster.tif","Images (*.tiff *.png)")[0]
                 if imageSaveName:
                     format = imageSaveName.split('.')[1]
                     try:
@@ -221,8 +226,8 @@ class viewOrtho_class(QGLWidget):
                             imgSave = imgSave.transpose(Image.FLIP_TOP_BOTTOM)
                             imgSave.save(imageSaveName)
                         else:
-                            raise IOError, format
-                    except IOError, e:
+                            raise IOError(format)
+                    except IOError as e:
                         QMessageBox.warning(self, "Save - Error",
                             "Failed to save: %s - unsupported format" % e)
             else:
@@ -289,19 +294,17 @@ class viewOrtho_class(QGLWidget):
 
         img = QGLWidget.convertToGLFormat(img)
         glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width(), img.height(),
-                0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits().asstring(img.numBytes()))
+                0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits().asstring(img.byteCount()))
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER)
         color =  [0.0, 0.0,0.0,0.0]
-
         glBindTexture(GL_TEXTURE_2D, 0)
         self.resolution = self.numpy_verts[0,2]-self.numpy_verts[1,2]
         self.maximum = max(self.numpy_verts[:,1])
         self.numpy_texture = array(self.texture, dtype=float32)
         self.m_indices= array(self.m_indices,dtype=uint32)
-
         temp2 = glGenBuffersARB(3)
         self.m_nVBOVertices = int(temp2[0])           
         self.m_indicebuffer = int(temp2[1])
@@ -321,7 +324,7 @@ class viewOrtho_class(QGLWidget):
     def getMaxBufferSize(self):
         return glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE)
             
-class orthoClass():
+class orthoClass(object):
     
     def __init__(self, Xmat, Ymat, minX, maxX, minY, maxY, resol, image, crs):
         
@@ -375,8 +378,8 @@ class orthoClass():
         if newWidth > 1500:
             newWidth = 1500
             newHeight = int(self.image.shape[0]*newWidth/float(self.image.shape[1]))    
-            print newWidth, newHeight, 'newWidth, newHeight'
-            print self.image.size, 'size'
+            print((newWidth, newHeight, 'newWidth, newHeight'))
+            print((self.image.size, 'size'))
             
             #if self.image.size == 2:
            
@@ -421,8 +424,7 @@ class orthoClass():
         imYLine = np.delete(imYLine, id0)
         
         im = image
-        
-        if im != None:
+        if im is not None:
             
             #Create an array with the image
             nDim = np.ndim(im)
@@ -666,7 +668,7 @@ class orthoClass():
         
     def saveTiff(self, drappingMain):
         
-        rasterPath = QFileDialog.getSaveFileName(drappingMain,"save file dialog" ,"/ortho.tiff","Images (*.tiff)")
+        rasterPath = QFileDialog.getSaveFileName(drappingMain,"save file dialog" ,"/ortho.tiff","Images (*.tiff)")[0]
         
         maskedOrtho = self.ortho
         pointRaster = self.pointRaster

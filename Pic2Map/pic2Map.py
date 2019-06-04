@@ -8,30 +8,34 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import qgis.core
 from qgis.core import *
 from qgis.gui import *
-from PyQt4 import QtGui
-from PyQt4 import QtCore
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-from buffers import Buffers
-from getGCPMainWindow import GetGCPMainWindow
-from initialization import Initialization_dialog
-from virtual3DMainWindow import Virtual3DMainWindow
-from monoplotterMainWindow import MonoplotterMainWindow
-from drapping import drappingMain
-from ortho import viewOrtho_class
-from checkOpenGLVersion import CheckVersion
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from .buffers import Buffers
+from .getGCPMainWindow import GetGCPMainWindow
+from .initialization import Initialization_dialog
+from .virtual3DMainWindow import Virtual3DMainWindow
+from .monoplotterMainWindow import MonoplotterMainWindow
+from .drapping import drappingMain
+from .ortho import viewOrtho_class
+from .checkOpenGLVersion import CheckVersion
 s = QSettings()
-import sys
+import sys, os
+from PIL import Image
 # initialize Qt resources from file resouces.py
-
-import resources
+from . import resources
 CRSERROR = 0
 
-class Pic2Map:
+class Pic2Map(object):
   def __init__(self, iface):
     # save reference to the QGIS interface
     self.iface = iface
@@ -56,8 +60,11 @@ class Pic2Map:
   def initGui(self):
 
     # create action that will start plugin configuration
-    self.action = QAction(QIcon(":/plugins/Pic2Map/icon.png"), "Pic2Map",self.iface.mainWindow())
-    QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+    name = os.path.dirname(os.path.abspath(__file__))
+    url = name + "/icon.png"
+    url.replace("\\","/")
+    self.action = QAction(QIcon(url), "Pic2Map",self.iface.mainWindow())
+    self.action.triggered.connect(self.run)
 
     # add toolbar button and menu item
     self.iface.addToolBarIcon(self.action)
@@ -192,12 +199,15 @@ class Pic2Map:
       #Check if the GCP approach has been used
       elif hasattr(self, 'gcpMainWindow'):
           self.gcpMainWindow.goToMonoplot = True
-
+          self.canvas.unsetMapTool(self.clickTool)
           self.gcpMainWindow.close()
           self.ParamPose = [self.gcpMainWindow.pos, self.gcpMainWindow.lookat, self.gcpMainWindow.FOV, self.gcpMainWindow.roll]
       else:
           raise  IOError
       
+      if hasattr(self, 'monoplotter'):   
+          del self.monoplotter
+    
       # launch monoplotter
       self.monoplotter = MonoplotterMainWindow(self.iface,
                                                self.buffers,
@@ -214,16 +224,18 @@ class Pic2Map:
       self.monoplotter.qgl_window.updateGL()
       self.monoplotter.openOrtho.connect(self.openOrthoWidget)
       self.monoplotter.qgl_window.blow.connect(self.clickOnMonoplotter)
-      self.monoplotter.ui.measureButton.clicked.connect(self.activateMeasurement)
       self.monoplotter.clearMapTool.connect(self.clearMapTool)
+      self.monoplotter.ui.retour.clicked.connect(self.retour)
+      self.monoplotter.ui.measureButton.clicked.connect(self.activateMeasurement)
       self.activeFlackOnMonoplotter()
+      
 
   def drawPinkCross(self, pos):
         if hasattr(self, 'pinkCross'):
             self.canvas.scene().removeItem(self.pinkCross)
         if pos[2] == 1:
             self.pinkCross = QgsVertexMarker(self.canvas)
-            posi = QgsPoint(pos[0],pos[1])
+            posi = QgsPointXY(pos[0],pos[1])
             self.pinkCross.setCenter(posi)
             self.pinkCross.setColor(QColor(255, 122, 255))
             self.pinkCross.setIconSize(10)
@@ -309,36 +321,37 @@ class Pic2Map:
 
   def load_picture(self, picName):
       ##s.setValue( "/Projections/defaultBehaviour", "UseProject" )
-      fileName = picName
-      fileInfo = QFileInfo(fileName)
-      baseName = fileInfo.baseName()
-      rlayer = QgsRasterLayer(fileName, baseName)
+      #fileName = picName
+      #fileInfo = QFileInfo(fileName)
+      #baseName = fileInfo.baseName()
+      #rlayer = QgsRasterLayer(fileName, baseName)
+      #####
+      im = Image.open(picName)
+      width, height = im.size
       resolution = QDesktopWidget().screenGeometry()
       size = [0,0]
-      size[1] = resolution.height()/2
-      size[0] = int(float(float(rlayer.width())/float(rlayer.height()))*size[1])
+      size[1] = old_div(resolution.height(),2)
+      size[0] = int(float(float(width)/float(height))*size[1])
 
-      if not rlayer.isValid():
-            QMessageBox.warning(QWidget(), "IO - Error",
-                "Picture failed to load!")
-            return
       # Load the image inside the graphicsview
-      self.gcpMainWindow.setImage(fileName, size)
+      self.gcpMainWindow.setImage(picName, size)
       # Set the zoom such the picture is almost in full view in the height directon
-      factor = float(self.gcpMainWindow.ui.graphicsView.size().height())/rlayer.height()
+      factor = float(self.gcpMainWindow.ui.graphicsView.size().height())/height
       self.gcpMainWindow.ui.graphicsView.scale(factor, factor)
       
   def resetClickTool(self):
       # This function is used for GCP digitalization.
       # It resets the click tool for getting altitude on the DEm layer (self.clayer)
-      self.canvas.setMapTool(self.clickTool)
-      QObject.connect(self.clickTool, SIGNAL("canvasClicked(const QgsPoint &, Qt::MouseButton)"),self.newCanvasGCP)
+      if self.gcpMainWindow.goToMonoplot == False :
+          self.canvas.setMapTool(self.clickTool)
+          self.clickTool.canvasClicked[QgsPointXY, Qt.MouseButton].connect(self.newCanvasGCP)
       
   def newCanvasGCP(self,point):
       # This function is used for GCP digitalization.
       # a new GCP is created on canvas
-      self.gcpMainWindow.selectCanvasPoint(point)
-      self.gcpMainWindow.refreshCanvasGCP()
+      if self.gcpMainWindow.goToMonoplot == False : 
+          self.gcpMainWindow.selectCanvasPoint(point)
+          self.gcpMainWindow.refreshCanvasGCP()
         
   def load_buffer(self):
         # This function is used at initialization.
@@ -442,9 +455,10 @@ class Pic2Map:
       self.monoplotter.stopMeasure3D()
       
   def disactiveFlackOnMonoplotter(self):
-      self.canvas.mapTool().canvasMoveEvent = None
-      self.canvas.mapTool().deactivate()
-      self.canvas.unsetMapTool(self.canvas.mapTool())
+      if self.canvas.mapTool() is not None : 
+          self.canvas.mapTool().canvasMoveEvent = None
+          self.canvas.mapTool().deactivate()
+          self.canvas.unsetMapTool(self.canvas.mapTool())
 
 
   def activeFlackOnMonoplotter(self):
@@ -465,8 +479,8 @@ class Pic2Map:
       canvasExtent =  self.canvas.extent()
       canvasBox =  [canvasExtent.xMinimum(), canvasExtent.yMinimum(), canvasExtent.xMaximum(), canvasExtent.yMaximum()]
       UPP = self.canvas.mapUnitsPerPixel()
-      u = int((x-canvasBox[0])/UPP)
-      v = int((canvasBox[3]-y)/UPP)
+      u = int(old_div((x-canvasBox[0]),UPP))
+      v = int(old_div((canvasBox[3]-y),UPP))
       return (u,v)
   
   def CanvastoWorldCoordinates(self,u,v):
@@ -483,10 +497,19 @@ class Pic2Map:
       # This function is used for GCP digitalization.
       # It zoom on the canvas depending on which GCp is selected. 
       # The zoom extent is set with referenced to the size of the DEM
-      offset = (self.dem_box.xMinimum()-self.dem_box.xMaximum())/50
+      offset = old_div((self.dem_box.xMinimum()-self.dem_box.xMaximum()),50)
       zoomRectangle = QgsRectangle(pos[0]-offset, pos[1]-offset,pos[0]+offset,pos[1]+offset)
       self.canvas.setExtent(zoomRectangle)
       self.canvas.refresh()
+
+  def retour(self):
+      self.gcpMainWindow.goToMonoplot = False
+      self.gcpMainWindow.refreshCanvasGCP()
+      self.gcpMainWindow.refreshPictureGCP()
+      self.gcpMainWindow.show()
+      self.monoplotter.close()
+      self.canvas.setMapTool(self.clickTool)
+      
 
 class CRSERROR(Exception):
     # Error which is raised when inadequate CRS is used

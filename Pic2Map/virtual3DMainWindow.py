@@ -1,10 +1,18 @@
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 from qgis.core import *
-from D3View import D3_view
-from ui_d3_virtual import Ui_D3
+from .D3View import D3_view
+from .ui_d3_virtual import Ui_D3
 from numpy import arctan, arctan2, sqrt, pi, cos, sin, array, zeros, dot, linalg, arcsin
-from PyQt4 import QtXml
+# FIXME QtXml is no longer supported.
+from PyQt5 import QtXml
+
+try:
+    QString = unicode
+except NameError:
+    # Python 3
+    QString = str
 
 class Virtual3DMainWindow( QMainWindow):
     #The 
@@ -95,7 +103,7 @@ class Virtual3DMainWindow( QMainWindow):
        path = self.pathToData + "/pose.kml"
        
        #Get the name of the saved KML file
-       fName = QFileDialog.getSaveFileName(self,"save file dialog" ,path,"Images (*.kml)");
+       fName = QFileDialog.getSaveFileName(self,"save file dialog" ,path,"Images (*.kml)");[0]
        if fName:
         f = open(fName, 'w')
         f.write(
@@ -153,7 +161,7 @@ class Virtual3DMainWindow( QMainWindow):
     def readKML(self):
         # Read a KML file created by th plugin or a KML for a picture pose in google Earth
         path = self.pathToData + "/pose.kml"
-        fName = QFileDialog.getOpenFileName(self, 'Open file',path,("Kml (*.kml)"))
+        fName = QFileDialog.getOpenFileName(self, 'Open file',path,("Kml (*.kml)"))[0]
         if not fName:
             return
         file=QFile(fName)
@@ -162,6 +170,7 @@ class Virtual3DMainWindow( QMainWindow):
             QMessageBox.warning(self, 'Application', QString('Cannot read file %1:\n%2.').arg(fname).arg(file.errorString()))
             return False
         else:
+            # FIXME QtXml is no longer supported.
             doc = QtXml.QDomDocument("EnvironmentML");
             if(not doc.setContent(file)):
                 file.close()

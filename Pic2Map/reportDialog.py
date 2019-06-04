@@ -13,13 +13,18 @@
 
 
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from ui_reportGCP import Ui_ReportGCP
+from builtins import zip
+from builtins import str
+from builtins import range
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from .ui_reportGCP import Ui_ReportGCP
 from numpy import mean, min, max, std, zeros, sqrt
 # create the dialog for zoom to point
 
-class ReportDialog(QtGui.QDialog):
+class ReportDialog(QtWidgets.QDialog):
     #This class create a report about errors in projection and back-projection
     #It is also here that points are considered behind a hill or not.
     #More generally, if you want to add some functions for checking consistency of
@@ -27,7 +32,7 @@ class ReportDialog(QtGui.QDialog):
     #
     #When the Pose dialog window is closed, the errors 
     def __init__(self, model, Qxx, paramBool, paramList, pathToData, xyzUnProjected):
-        QtGui.QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         self.ui = Ui_ReportGCP()
         self.ui.setupUi(self)
         self.center()
@@ -83,7 +88,7 @@ class ReportDialog(QtGui.QDialog):
                     text += '\n'+ name + ', Fixed: ' + ' ' + str(round(value,6))
                 
             self.ui.reportBrowser.setText(text)
-            self.ui.saveButton.pressed.connect(self.saveReport)
+            self.ui.pushButton.pressed.connect(self.saveReport)
             test = self.isBehindHill(paramList,errors3D)
             if test:
                 QMessageBox.warning(self, "Reprojection - Warning",
@@ -94,7 +99,7 @@ class ReportDialog(QtGui.QDialog):
             
     def center(self):
         qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
         
@@ -102,7 +107,7 @@ class ReportDialog(QtGui.QDialog):
         #Save a small text file which contain the same information as the dialog. 
         path = self.pathToData + '/report.txt'
         fSaveName = QFileDialog.getSaveFileName(self, 'Save your report as...',\
-                                                  path,"File (*.txt)")
+                                                  path,"File (*.txt)")[0]
         f = open(fSaveName, 'w')
         data = self.ui.reportBrowser.toPlainText()
         f.write(data)

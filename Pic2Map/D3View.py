@@ -7,9 +7,7 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  *****
-"""
  
-"""
 The class D3_view is called from different part of the code. It has different behavior
 depending on its use.
 It can:
@@ -41,18 +39,23 @@ The pose of the camera is done as following:
     self.roll contains the vertical direction (rotation around the front axis) (used in gluLookAt)
     self.FOV contains the field of view information, equivalent to the focal information (used in gluPerspective)
 """
+from __future__ import division
 
+from builtins import zip
+from past.utils import old_div
 from OpenGL.GL import *
-from PyQt4 import QtGui
-from PyQt4.QtCore import *
-from PyQt4.QtOpenGL import *
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtOpenGL import *
 from OpenGL.GLU import *
 from OpenGL.GL.framebufferobjects import *
 from numpy import sqrt, cos, sin, arccos, arctan2, zeros, array, float32, pi, linalg, cross, dot, tan
 from qgis.core import *
 
 
-class D3_view(QGLWidget):
+class D3_view(QOpenGLWidget):
     getGCPIn3DviewSignal = pyqtSignal()
     fixPositionSignal = pyqtSignal(tuple)
     def __init__(self, pointBuffer, picture_name = None, roll = 0, FOV = 30, 
@@ -95,24 +98,24 @@ class D3_view(QGLWidget):
     def wheelEvent(self,event):
         # translate the view position in the front direction
         self.last_pos = event.pos()
-        delta = event.delta()*self.res/5
+        delta = old_div(event.angleDelta().y()*self.res,5)
         xk = self.pos[0]-self.lookat[0]
         yk = self.pos[1]-self.lookat[1]
         zk = self.pos[2]-self.lookat[2]
         n = sqrt((xk)**2+(yk)**2+(zk)**2)
         vect = array([xk,yk,zk])
-        vect = vect/linalg.norm(vect)
+        vect = old_div(vect,linalg.norm(vect))
         deltax =  vect[0]*delta
         deltay =  vect[1]*delta
         deltaz =  vect[2]*delta
         self.pos = [self.pos[0]+deltax, self.pos[1]+deltay,self.pos[2]+deltaz]
         self.lookat = [self.lookat[0]+deltax, self.lookat[1]+deltay,self.lookat[2]+deltaz]
-        self.updateGL()
+        self.update()
         
     def mousePressEvent(self,event):
         # When clicked on the window...
          self.last_pos = event.pos()
-         modifiers = QtGui.QApplication.keyboardModifiers()
+         modifiers = QtWidgets.QApplication.keyboardModifiers()
          if(event.buttons() & Qt.LeftButton and modifiers == Qt.ControlModifier):
                  #... if ctrl is pressed
                  x = event.x()
@@ -140,7 +143,7 @@ class D3_view(QGLWidget):
         # Translate or rotate the view position in axis x and y (side and vertical direction)
         dx = event.x() - self.last_pos.x()
         dy = event.y() - self.last_pos.y()
-        modifiers = QtGui.QApplication.keyboardModifiers()
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
         if (event.buttons() & Qt.RightButton):
             # Rotate the view in axis x and y (side and vertical direction)
             self.rotateBy(dy*2, 0, 0)
@@ -154,7 +157,7 @@ class D3_view(QGLWidget):
             # translate the view in front direction (finer than wheelEvent)
             self.PanByMid(dy*2)
         self.last_pos = event.pos()
-        self.updateGL()
+        self.update()
         
     def PanByMid(self,delta): 
         # translate the view in front direction (finer than wheelEvent)
@@ -163,13 +166,13 @@ class D3_view(QGLWidget):
         zk = self.pos[2]-self.lookat[2]
         n = sqrt((xk)**2+(yk)**2+(zk)**2)
         vect = array([xk,yk,zk])
-        vect = vect/linalg.norm(vect)
+        vect = old_div(vect,linalg.norm(vect))
         deltax =  vect[0]*delta
         deltay =  vect[1]*delta
         deltaz =  vect[2]*delta
         self.pos = [self.pos[0]+deltax, self.pos[1]+deltay,self.pos[2]+deltaz]
         self.lookat = [self.lookat[0]+deltax, self.lookat[1]+deltay,self.lookat[2]+deltaz]
-        self.updateGL()
+        self.update()
         
     def PanBy(self, x, y, z): 
         # translate the view in axis x and y (side and vertical direction)
@@ -178,12 +181,12 @@ class D3_view(QGLWidget):
         zk = self.pos[2]-self.lookat[2]
         n = sqrt((xk)**2+(yk)**2+(zk)**2)
         vectPlan = cross(array([0,1,0]),array([xk,yk,zk]))
-        vectPlan = vectPlan/linalg.norm(vectPlan)
+        vectPlan = old_div(vectPlan,linalg.norm(vectPlan))
         vectZ= cross(vectPlan,array([xk,yk,zk]))
-        vectZ = vectZ/linalg.norm(vectZ)
-        deltax = x * vectPlan[0]*self.res/5
-        deltay = z * vectZ[1]*self.res/5
-        deltaz = x * vectPlan[2]*self.res/5
+        vectZ = old_div(vectZ,linalg.norm(vectZ))
+        deltax = old_div(x * vectPlan[0]*self.res,5)
+        deltay = old_div(z * vectZ[1]*self.res,5)
+        deltaz = old_div(x * vectPlan[2]*self.res,5)
         
         self.pos = [self.pos[0]+deltax, self.pos[1]+deltay, self.pos[2]+deltaz]
         self.lookat = [self.lookat[0]+deltax, self.lookat[1]+deltay,self.lookat[2]+deltaz]
@@ -194,7 +197,7 @@ class D3_view(QGLWidget):
         zk = self.lookat[2]-self.pos[2]
         yk = self.lookat[1]-self.pos[1]
         n = sqrt(((xk)**2+(yk)**2+(zk)**2))
-        theta = arccos(yk/n)
+        theta = arccos(old_div(yk,n))
         phi = arctan2(zk,xk)
         theta += (x/1000.0)
         phi += (z/1000.0)
@@ -399,8 +402,8 @@ class D3_view(QGLWidget):
             glBindTexture(GL_TEXTURE_2D, 0)
             
             self.texture = zeros((self.l_est*self.l_nord,2))
-            self.texture[:,0] = (ortho_box[0]-self.numpy_verts[:,0])/(ortho_box[0]-ortho_box[2])
-            self.texture[:,1] = (ortho_box[1]-self.numpy_verts[:,2])/(ortho_box[1]-ortho_box[3])
+            self.texture[:,0] = old_div((ortho_box[0]-self.numpy_verts[:,0]),(ortho_box[0]-ortho_box[2]))
+            self.texture[:,1] = old_div((ortho_box[1]-self.numpy_verts[:,2]),(ortho_box[1]-ortho_box[3]))
             self.numpy_texture = array(self.texture, dtype=float32)
 
 
@@ -428,12 +431,12 @@ class D3_view(QGLWidget):
             
         self.count = len(self.m_indices)
 
-        if self.pos == None:
-            self.pos = [self.numpy_verts[self.count/4][0], self.numpy_verts[self.count/4][1]*1.5, self.numpy_verts[self.count/4][2]]
-        if self.lookat == None:
-            self.lookat = self.numpy_verts[self.count/2]
-        if self.upWorld == None:
-            self.upWorld = self.numpy_verts[self.count/2]
+        if self.pos is None:
+            self.pos = [self.numpy_verts[old_div(self.count,4)][0], self.numpy_verts[old_div(self.count,4)][1]*1.5, self.numpy_verts[old_div(self.count,4)][2]]
+        if self.lookat is None:
+            self.lookat = self.numpy_verts[old_div(self.count,2)]
+        if self.upWorld is None:
+            self.upWorld = self.numpy_verts[old_div(self.count,2)]
         
     def getErrorOnGCP(self, uvtable, XYZTable):
         result = []
@@ -469,8 +472,8 @@ class D3_view(QGLWidget):
     def unProj(self,winx,winy,winz):
           input = [0,0,0,0]
           objectCoordinate = [0,0,0]
-          input[0]=(winx-self.viewport[0])/self.viewport[2]*2.0-1.0
-          input[1]=(winy-self.viewport[1])/self.viewport[3]*2.0-1.0
+          input[0]=old_div((winx-self.viewport[0]),self.viewport[2])*2.0-1.0
+          input[1]=old_div((winy-self.viewport[1]),self.viewport[3])*2.0-1.0
           input[2]=2.0*winz-1.0
           input[3]=1.0
           output = dot(self.m,input)

@@ -7,99 +7,93 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
+    _encoding = QtWidgets.QApplication.UnicodeUTF8
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+        return QtCore.QCoreApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QtCore.QCoreApplication.translate(context, text, disambig)
 
 class Ui_Monoplotter(object):
     def setupUi(self, Monoplotter, useOrthoImage):
-        Monoplotter.setObjectName(_fromUtf8("Monoplotter"))
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        Monoplotter.setObjectName("Monoplotter")
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(Monoplotter.sizePolicy().hasHeightForWidth())
         Monoplotter.setSizePolicy(sizePolicy)
         Monoplotter.setAnimated(False)
-        Monoplotter.setDockOptions(QtGui.QMainWindow.AllowTabbedDocks)
+        Monoplotter.setDockOptions(QtWidgets.QMainWindow.AllowTabbedDocks)
         Monoplotter.setUnifiedTitleAndToolBarOnMac(False)
-        self.centralwidget = QtGui.QWidget(Monoplotter)
-        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+        self.centralwidget = QtWidgets.QWidget(Monoplotter)
+        self.centralwidget.setObjectName("centralwidget")
         Monoplotter.setCentralWidget(self.centralwidget)
-        self.menubar = QtGui.QMenuBar(Monoplotter)
+        self.menubar = QtWidgets.QMenuBar(Monoplotter)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 757, 21))
-        self.menubar.setObjectName(_fromUtf8("menubar"))
+        self.menubar.setObjectName("menubar")
         Monoplotter.setMenuBar(self.menubar)
-        self.statusbar = QtGui.QStatusBar(Monoplotter)
-        self.statusbar.setObjectName(_fromUtf8("statusbar"))
+        self.statusbar = QtWidgets.QStatusBar(Monoplotter)
+        self.statusbar.setObjectName("statusbar")
         Monoplotter.setStatusBar(self.statusbar)
-        self.dockWidget = QtGui.QDockWidget(Monoplotter)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        self.dockWidget = QtWidgets.QDockWidget(Monoplotter)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.dockWidget.sizePolicy().hasHeightForWidth())
         self.dockWidget.setSizePolicy(sizePolicy)
         self.dockWidget.setFixedWidth(200)
-        self.dockWidget.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
-        self.dockWidget.setObjectName(_fromUtf8("dockWidget"))
-        self.dockWidgetContents = QtGui.QWidget()
-        self.dockWidgetContents.setObjectName(_fromUtf8("dockWidgetContents"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.dockWidgetContents)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.label = QtGui.QLabel(self.dockWidgetContents)
+        self.dockWidget.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
+        self.dockWidget.setObjectName("dockWidget")
+        self.dockWidgetContents = QtWidgets.QWidget()
+        self.dockWidgetContents.setObjectName("dockWidgetContents")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.label = QtWidgets.QLabel(self.dockWidgetContents)
         self.label.setEnabled(True)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
-        self.label.setObjectName(_fromUtf8("label"))
+        self.label.setObjectName("label")
         self.verticalLayout.addWidget(self.label)
-        self.spinBox = QtGui.QDoubleSpinBox(self.dockWidgetContents)
-        self.spinBox.setObjectName(_fromUtf8("spinBox"))
+        self.spinBox = QtWidgets.QDoubleSpinBox(self.dockWidgetContents)
+        self.spinBox.setObjectName("spinBox")
         self.spinBox.setMaximum (2000)
-        self.spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
+        self.spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.verticalLayout.addWidget(self.spinBox)
         
         #Measure 2D button
-        self.measureButton = QtGui.QPushButton(self.dockWidgetContents)
-        self.measureButton.setObjectName(_fromUtf8("measureButton"))
+        self.measureButton = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.measureButton.setObjectName("measureButton")
         self.verticalLayout.addWidget(self.measureButton)
         
         #Measure 3D button
-        self.measure3D = QtGui.QPushButton(self.dockWidgetContents)
-        self.measure3D.setObjectName(_fromUtf8("measure3D"))
+        self.measure3D = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.measure3D.setObjectName("measure3D")
         self.verticalLayout.addWidget(self.measure3D)
         
         #Orthorectification
-        self.pushButton = QtGui.QPushButton(self.dockWidgetContents)
-        self.pushButton.setObjectName(_fromUtf8("pushButton"))
+        self.pushButton = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.pushButton.setObjectName("pushButton")
         self.verticalLayout.addWidget(self.pushButton)
         
         #Save image button
-        self.saveButton = QtGui.QPushButton(self.dockWidgetContents)
-        self.saveButton.setObjectName(_fromUtf8("saveButton"))
+        self.saveButton = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.saveButton.setObjectName("saveButton")
         self.verticalLayout.addWidget(self.saveButton)
         
         #Refresh button
-        self.refreshButton = QtGui.QPushButton(self.dockWidgetContents)
-        self.refreshButton.setObjectName(_fromUtf8("refreshButton"))
+        self.refreshButton = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.refreshButton.setObjectName("refreshButton")
         self.verticalLayout.addWidget(self.refreshButton)
         
         #
-        self.buttonLabel = QtGui.QPushButton(self.dockWidgetContents)
-        self.buttonLabel.setObjectName(_fromUtf8("buttonLabel"))
+        self.buttonLabel = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.buttonLabel.setObjectName("buttonLabel")
         self.verticalLayout.addWidget(self.buttonLabel)
         
         #
@@ -108,34 +102,39 @@ class Ui_Monoplotter(object):
         #self.verticalLayout.addWidget(self.activatePolygon)
         
         #Save XYZ button
-        self.saveXYZmatrix = QtGui.QPushButton(self.dockWidgetContents)
-        self.saveXYZmatrix.setObjectName(_fromUtf8("saveXYZmatrix"))
+        self.saveXYZmatrix = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.saveXYZmatrix.setObjectName("saveXYZmatrix")
         self.verticalLayout.addWidget(self.saveXYZmatrix)
         
         #Interception angle and surface analysis button
-        self.analysis = QtGui.QPushButton(self.dockWidgetContents)
-        self.saveXYZmatrix.setObjectName(_fromUtf8("analysis"))
+        self.analysis = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.saveXYZmatrix.setObjectName("analysis")
         self.verticalLayout.addWidget(self.analysis)
         
         #Footprint and mask
-        self.footprint = QtGui.QPushButton(self.dockWidgetContents)
-        self.footprint.setObjectName(_fromUtf8("footprint"))
+        self.footprint = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.footprint.setObjectName("footprint")
         self.verticalLayout.addWidget(self.footprint)
+
+        self.retour = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.retour.setObjectName("retour")
+        self.verticalLayout.insertSpacing(-1, 30)
+        self.verticalLayout.addWidget(self.retour)
         
-        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         if not useOrthoImage:
-            self.label_2 = QtGui.QLabel(self.dockWidgetContents)
-            self.label_2.setObjectName(_fromUtf8("label_2"))
+            self.label_2 = QtWidgets.QLabel(self.dockWidgetContents)
+            self.label_2.setObjectName("label_2")
             self.verticalLayout.addWidget(self.label_2)
-            self.horizontalSlider = QtGui.QSlider(self.dockWidgetContents)
+            self.horizontalSlider = QtWidgets.QSlider(self.dockWidgetContents)
             self.horizontalSlider.setMaximum(2)
             self.horizontalSlider.setSingleStep(1)
             self.horizontalSlider.setPageStep(1)
             self.horizontalSlider.setValue(0)
             self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
-            self.horizontalSlider.setTickPosition(QtGui.QSlider.TicksAbove)
-            self.horizontalSlider.setObjectName(_fromUtf8("horizontalSlider"))
+            self.horizontalSlider.setTickPosition(QtWidgets.QSlider.TicksAbove)
+            self.horizontalSlider.setObjectName("horizontalSlider")
             self.verticalLayout.addWidget(self.horizontalSlider)
             
 
@@ -148,7 +147,7 @@ class Ui_Monoplotter(object):
         QtCore.QMetaObject.connectSlotsByName(Monoplotter)
 
     def retranslateUi(self, Monoplotter, useOrthoImage):
-        Monoplotter.setWindowTitle(_translate("Monoplotter", "MainWindow", None))
+        Monoplotter.setWindowTitle(_translate("Monoplotter", "Monoplotter", None))
         self.label.setText(_translate("Monoplotter", "Window Size:", None))
         self.measureButton.setText(_translate("Monoplotter", "Measure on plane", None))
         self.measure3D.setText(_translate("Monoplotter", "Measure 3D", None))
@@ -163,6 +162,7 @@ class Ui_Monoplotter(object):
         self.analysis.setText(_translate("Monoplotter", "Geometry analysis", None))
         
         self.footprint.setText(_translate("Monoplotter", "Footprint", None))
+        self.retour.setText(_translate("Monoplotter", "Back to GCPWindow", None))
         
         if not useOrthoImage:
             self.label_2.setText(_translate("Monoplotter", "DEM transparency", None))

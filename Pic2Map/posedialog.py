@@ -15,21 +15,26 @@ expressions.
 Part of this file has been written by Marcos Duarte - duartexyz@gmail.com.
 More precisely, Marcos has written the functions DLTcalibration and Normalization.
 """
+from __future__ import division
+from __future__ import print_function
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from ui_pose import Ui_Pose
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from .ui_pose import Ui_Pose
 from copy import copy
 from numpy import any, zeros, array, sin, cos, dot, linalg, pi, asarray, mean, shape, sqrt, flipud, std, concatenate, ones, arccos, arcsin, arctan,arctan2, size, abs, matrix, diag, nonzero
-from reportDialog import ReportDialog
+from .reportDialog import ReportDialog
 
-
-class Pose_dialog(QtGui.QDialog):
+class Pose_dialog(QtWidgets.QDialog):
     update = pyqtSignal()
     def __init__(self, model, paramPosIni, positionFixed, sizePicture, whoIsChecked,pathToData):
         #QtGui.QDialog.__init__(self)
-        QtGui.QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         self.uiPose = Ui_Pose()
         self.uiPose.setupUi(self)
         self.center()
@@ -45,27 +50,27 @@ class Pose_dialog(QtGui.QDialog):
         
         #Set previous estimated value to text boxes
         indice = 0
-        for line in self.findChildren(QtGui.QLineEdit):
+        for line in self.findChildren(QtWidgets.QLineEdit):
                 value = paramPosIni[indice]
                 if indice == 0:
                     value *= -1
                 if indice > 2 and indice < 6:
-                    value *= 180/pi
+                    value *= old_div(180,pi)
                 if indice == 7:
-                    value -= self.sizePicture[0]/2
+                    value -= old_div(self.sizePicture[0],2)
                 if indice == 8:
-                    value -= self.sizePicture[1]/2
+                    value -= old_div(self.sizePicture[1],2)
                 line.setText(str(round(value,3)))
                 indice +=1
         
         indice = 0
-        for radio in self.findChildren(QtGui.QRadioButton):
+        for radio in self.findChildren(QtWidgets.QRadioButton):
             radio.setChecked(self.whoIsChecked[indice])
             indice +=1
                 
     def center(self):
         qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
     
@@ -124,7 +129,7 @@ class Pose_dialog(QtGui.QDialog):
         # self.xyzUsed are GCP which have 6th column enabled 
         self.xyzUsed = array([-1*xyz[:,0],xyz[:,1],xyz[:,2]]).T
         
-        table = self.findChildren(QtGui.QLineEdit)
+        table = self.findChildren(QtWidgets.QLineEdit)
         parameter_bool = zeros((9))
         parameter_list = []
         indice = 0
@@ -142,7 +147,7 @@ class Pose_dialog(QtGui.QDialog):
         """
         
         #For each radio button (Free, Fixed, Apriori) for each parameters
-        for radioButton in self.findChildren(QtGui.QRadioButton):
+        for radioButton in self.findChildren(QtWidgets.QRadioButton):
             
             
             if (radioButton.text() == "Free"):
@@ -160,7 +165,7 @@ class Pose_dialog(QtGui.QDialog):
                     if indice == 0:
                         value = -value
                     if indice > 2 and indice < 6:
-                        value *=  pi/180  #angle are displayed in degree
+                        value *=  old_div(pi,180)  #angle are displayed in degree
                     if indice == 7:
                         value += self.sizePicture[0]/2.0 #central point is displayed in reference to the center of image
                     if indice == 8:
@@ -179,7 +184,7 @@ class Pose_dialog(QtGui.QDialog):
                     if indice == 0:
                         value = -value
                     if indice > 2 and indice < 6:
-                        value *=  pi/180  #angle are displayed in degree
+                        value *=  old_div(pi,180)  #angle are displayed in degree
                     if indice == 7:
                         value += self.sizePicture[0]/2.0 #central point is displayed in reference to the center of image
                     if indice == 8:
@@ -195,10 +200,10 @@ class Pose_dialog(QtGui.QDialog):
         # We fix anyway the central point. Future work can take it into account. It is therefore used here as parameter.
         #U0
         parameter_bool[7] = 0
-        parameter_list.append(self.sizePicture[0]/2)
+        parameter_list.append(old_div(self.sizePicture[0],2))
         #V0
         parameter_bool[8] = 0
-        parameter_list.append(self.sizePicture[1]/2)
+        parameter_list.append(old_div(self.sizePicture[1],2))
 
         try:
             #Check if consistency of inputs
@@ -220,7 +225,7 @@ class Pose_dialog(QtGui.QDialog):
                 
         except IOError as x:
 
-            QMessageBox.warning(self, "GCP error", x.message)
+            QMessageBox.warning(self, "GCP error", str(x))
             self.done = False
             
         except ValueError:
@@ -235,18 +240,18 @@ class Pose_dialog(QtGui.QDialog):
                 
                 if any(parameter_bool[0:7]==1):
                     #There are free values a DLT is performed
-                    print 'Position is fixed but orientation is unknown'
-                    print 'The orientation is initialized with DLT'
+                    print ('Position is fixed but orientation is unknown')
+                    print ('The orientation is initialized with DLT')
                     
                     resultInitialization, L, v, up = self.DLTMain(xyz,uv1)
                 else:
                     #There is only fixed or apriori values LS is performed
-                    print 'There is only fixed or apriori values LS is performed'
+                    print ('There is only fixed or apriori values LS is performed')
                     resultInitialization = parameter_list
                     
 
             else:
-                print 'There are less than 6 GCP: every parameter must be fixed or apriori, LS is performed'
+                print ('There are less than 6 GCP: every parameter must be fixed or apriori, LS is performed')
                 resultInitialization = parameter_list
 
             
@@ -277,12 +282,12 @@ class Pose_dialog(QtGui.QDialog):
             indice = 0
             
             # Set result in the dialog box
-            for line in self.findChildren(QtGui.QLineEdit):
+            for line in self.findChildren(QtWidgets.QLineEdit):
                 value = result[indice]
                 if indice == 0:
                     value *= -1
                 if indice > 2 and indice < 6:
-                    value *= 180/pi
+                    value *= old_div(180,pi)
                 if indice == 7:
                     value-=self.sizePicture[0]/2.0
                 if indice == 8:
@@ -300,11 +305,11 @@ class Pose_dialog(QtGui.QDialog):
             self.upWorld = up
             self.pos = result[0:3]
             # The focal, here calculate in pixel, has to be translated in term of vertical field of view for openGL
-            self.FOV = (2*arctan(float(self.sizePicture[1]/2.0)/result[6]))*180/pi 
+            self.FOV = old_div((2*arctan(float(self.sizePicture[1]/2.0)/result[6]))*180,pi) 
             self.roll = arcsin(-sin(result[3])*sin(result[5]))
             
             indice = 0
-            for radio in self.findChildren(QtGui.QRadioButton):
+            for radio in self.findChildren(QtWidgets.QRadioButton):
                 self.whoIsChecked[indice] = radio.isChecked()
                 indice +=1
         
@@ -379,8 +384,8 @@ class Pose_dialog(QtGui.QDialog):
                     x_temp = copy(x);
                     x_temp[j] = x[j]+inc
                     u2, v2 = self.dircal(x_temp,abscissa[i,:],x_fix,PARAM)
-                    A[2*i-1,j]= (u2-ubul)/inc
-                    A[2*i,j]= (v2-vbul)/inc
+                    A[2*i-1,j]= old_div((u2-ubul),inc)
+                    A[2*i,j]= old_div((v2-vbul),inc)
             # The sum of the square of residual (S0) must be as little as possible.        
             # That's why we speak of "least square"... tadadam !
             S0 = sum(v**2);
@@ -403,7 +408,7 @@ class Pose_dialog(QtGui.QDialog):
                     S2 = sum(v_test**2);
             # Check if sum of square is less
             if S2<S0:
-                Lambda = Lambda/10
+                Lambda = old_div(Lambda,10)
                 x = x + dx
             else:
                 Lambda = Lambda*10
@@ -488,17 +493,17 @@ class Pose_dialog(QtGui.QDialog):
         R[2,1] = -cos(azimuth)*sin(tilt)
         R[2,2] =  cos(tilt)
         D = -(x0*R[2,0]+y0*R[2,1]+z0*R[2,2])
-        L1_line[0] = (u0*R[2,0]-focal*R[0,0])/D
-        L1_line[1] = (u0*R[2,1]-focal*R[0,1])/D
-        L1_line[2] = (u0*R[2,2]-focal*R[0,2])/D
-        L1_line[3] = ((focal*R[0,0]-u0*R[2,0])*x0+(focal*R[0,1]-u0*R[2,1])*y0+(focal*R[0,2]-u0*R[2,2])*z0)/D
-        L1_line[4] = (v0*R[2,0]-focal*R[1,0])/D
-        L1_line[5] = (v0*R[2,1]-focal*R[1,1])/D
-        L1_line[6] = (v0*R[2,2]-focal*R[1,2])/D
-        L1_line[7] = ((focal*R[1,0]-v0*R[2,0])*x0+(focal*R[1,1]-v0*R[2,1])*y0+(focal*R[1,2]-v0*R[2,2])*z0)/D
-        L1_line[8] = R[2,0]/D
-        L1_line[9] = R[2,1]/D
-        L1_line[10] = R[2,2]/D
+        L1_line[0] = old_div((u0*R[2,0]-focal*R[0,0]),D)
+        L1_line[1] = old_div((u0*R[2,1]-focal*R[0,1]),D)
+        L1_line[2] = old_div((u0*R[2,2]-focal*R[0,2]),D)
+        L1_line[3] = old_div(((focal*R[0,0]-u0*R[2,0])*x0+(focal*R[0,1]-u0*R[2,1])*y0+(focal*R[0,2]-u0*R[2,2])*z0),D)
+        L1_line[4] = old_div((v0*R[2,0]-focal*R[1,0]),D)
+        L1_line[5] = old_div((v0*R[2,1]-focal*R[1,1]),D)
+        L1_line[6] = old_div((v0*R[2,2]-focal*R[1,2]),D)
+        L1_line[7] = old_div(((focal*R[1,0]-v0*R[2,0])*x0+(focal*R[1,1]-v0*R[2,1])*y0+(focal*R[1,2]-v0*R[2,2])*z0),D)
+        L1_line[8] = old_div(R[2,0],D)
+        L1_line[9] = old_div(R[2,1],D)
+        L1_line[10] = old_div(R[2,2],D)
         L1_line[11] = 1
         L1p =  L1_line.reshape(3,4)
         return L1p
@@ -576,18 +581,18 @@ class Pose_dialog(QtGui.QDialog):
 
         U, S, Vh = linalg.svd(A)
         # The parameters are in the last line of Vh and normalize them: 
-        L = Vh[-1,:] / Vh[-1,-1]
+        L = old_div(Vh[-1,:], Vh[-1,-1])
         # Camera projection matrix: 
         H = L.reshape(3,4)
 
         # Denormalization: 
         H = dot( dot( linalg.pinv(Tuv), H ), Txyz );
-        H = H / H[-1,-1]
-        L = H.flatten(0)
+        H = old_div(H, H[-1,-1])
+        L = H.flatten()
         # Mean error of the DLT (mean residual of the DLT transformation in 
         #  units of camera coordinates): 
         uv2 = dot( H, concatenate( (xyz.T, ones((1,xyz.shape[0]))) ) ) 
-        uv2 = uv2/uv2[2,:] 
+        uv2 = old_div(uv2,uv2[2,:]) 
         # Mean distance: 
         err = sqrt( mean(sum( (uv2[0:2,:].T - uv)**2,1 )) ) 
         return L, err
@@ -621,7 +626,7 @@ class Pose_dialog(QtGui.QDialog):
         L1p = array([[L1[0],L1[1],L1[2], L1[3]],[L1[4], L1[5], L1[6], L1[7]],[L1[8], L1[9], L1[10], L1[11]]])
 
         #Reconstruction of parameters
-        D2=1/(L1[8]**2+L1[9]**2+L1[10]**2);
+        D2=old_div(1,(L1[8]**2+L1[9]**2+L1[10]**2));
         D = sqrt(D2);
         u0 = D2*(L1[0]*L1[8]+L1[1]*L1[9]+L1[2]*L1[10]);
         v0 = D2*(L1[4]*L1[8]+L1[5]*L1[9]+L1[6]*L1[10]);
@@ -630,10 +635,10 @@ class Pose_dialog(QtGui.QDialog):
         dv2 = D2*((v0*L1[8]-L1[4])**2+(v0*L1[9]-L1[5])**2+(v0*L1[10]-L1[6])**2);
         du = sqrt(du2);
         dv = sqrt(dv2);
-        focal = (du+dv)/2
+        focal = old_div((du+dv),2)
 
-        R_mat = array([[(u0*L1[8]-L1[0])/du,(u0*L1[9]-L1[1])/du,(u0*L1[10]-L1[2])/du],\
-                [(v0*L1[8]-L1[4])/dv,(v0*L1[9]-L1[5])/dv,(v0*L1[10]-L1[6])/dv],\
+        R_mat = array([[old_div((u0*L1[8]-L1[0]),du),old_div((u0*L1[9]-L1[1]),du),old_div((u0*L1[10]-L1[2]),du)],\
+                [old_div((v0*L1[8]-L1[4]),dv),old_div((v0*L1[9]-L1[5]),dv),old_div((v0*L1[10]-L1[6]),dv)],\
                 [L1[8],L1[9],L1[10]]]);
 
         if linalg.det(R_mat) < 0:
@@ -705,9 +710,9 @@ class Pose_dialog(QtGui.QDialog):
         R[2,1] = -cos(azimuth)*sin(tilt)
         R[2,2] =  cos(tilt)
         
-        ures = -focal*(R[0,0]*(x1-x0)+R[0,1]*(y1-y0)+R[0,2]*(z1-z0))/\
-            (R[2,0]*(x1-x0)+R[2,1]*(y1-y0)+R[2,2]*(z1-z0))+u0;
-        vres = -focal*(R[1,0]*(x1-x0)+R[1,1]*(y1-y0)+R[1,2]*(z1-z0))/\
-            (R[2,0]*(x1-x0)+R[2,1]*(y1-y0)+R[2,2]*(z1-z0))+v0;
+        ures = old_div(-focal*(R[0,0]*(x1-x0)+R[0,1]*(y1-y0)+R[0,2]*(z1-z0)),\
+            (R[2,0]*(x1-x0)+R[2,1]*(y1-y0)+R[2,2]*(z1-z0)))+u0;
+        vres = old_div(-focal*(R[1,0]*(x1-x0)+R[1,1]*(y1-y0)+R[1,2]*(z1-z0)),\
+            (R[2,0]*(x1-x0)+R[2,1]*(y1-y0)+R[2,2]*(z1-z0)))+v0;
 
         return ures,vres

@@ -9,14 +9,16 @@
  ***************************************************************************/
 """
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from ui_label_settings import Ui_LabelSetting
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from .ui_label_settings import Ui_LabelSetting
 from functools import partial
 
-class label_dialog(QtGui.QDialog):
+class label_dialog(QtWidgets.QDialog):
     def __init__(self, labelSet):
-        QtGui.QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         self.ui = Ui_LabelSetting()
         self.ui.setupUi(self, labelSet)
         self.center()
@@ -31,19 +33,19 @@ class label_dialog(QtGui.QDialog):
                 
     def center(self):
         qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
     
     def showFont(self):
-        font, ok = QtGui.QFontDialog.getFont()
+        font, ok = QtWidgets.QFontDialog.getFont()
         if ok:
             self.font = font
             self.ui.label_2.setFont(font)
         
     def showColor(self, frame):
         # Open the PyQt dialog box
-        col = QtGui.QColorDialog.getColor()
+        col = QtWidgets.QColorDialog.getColor()
         if col.isValid():
             # color the button
             frame.setStyleSheet("QWidget { background-color: %s }" % col.name())

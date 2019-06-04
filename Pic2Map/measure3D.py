@@ -1,20 +1,20 @@
 
- 
-
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from builtins import str
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
 from math import  sqrt
-from ui_mesure3D import Ui_Mesure3D
+from .ui_mesure3D import Ui_Mesure3DDialog
 
-class mesure3DDialog(QtGui.QDialog):
+class mesure3DDialog(QtWidgets.QDialog):
     closeSignal= pyqtSignal()
     def __init__(self):
-        QtGui.QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         # create the interface
-        self.ui = Ui_Mesure3D()
+        self.ui = Ui_Mesure3DDialog()
         self.ui.setupUi(self)
         #self.path contains the path in picture coordinates. It is only used for drawing
         self.path = []

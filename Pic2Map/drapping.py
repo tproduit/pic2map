@@ -8,16 +8,22 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import division
+from __future__ import print_function
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
+from builtins import str
+from past.utils import old_div
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
-from ui_drapping import Ui_drapping
-from ortho import viewOrtho_class, orthoClass
+from .ui_drapping import Ui_drapping
+from .ortho import viewOrtho_class, orthoClass
 from scipy import misc
 
-class drappingMain(QtGui.QMainWindow):
+class drappingMain(QtWidgets.QMainWindow):
     # This Mainwindow is used to set the bounding box and the cell size of the raster extracted
     # from the drapped picture on the DEM.
     def __init__(self, pointBuffer, picture_name,
@@ -32,7 +38,7 @@ class drappingMain(QtGui.QMainWindow):
                                           Ymat,
                                           parent = None):#20150923
                                           
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_drapping()
         self.ui.setupUi(self)
         self.pointBuffer = pointBuffer
@@ -58,13 +64,13 @@ class drappingMain(QtGui.QMainWindow):
         self.setCentralWidget(self.viewOrtho)
         self.resolution = QDesktopWidget().screenGeometry()
         size = [0,0]
-        size[1] = self.resolution.height()/2
+        size[1] = old_div(self.resolution.height(),2)
         l_nord =  pointBuffer.l_nord
         self.l_nord = l_nord
         l_est =  pointBuffer.l_est
         self.l_est = l_est
         ratio =  l_nord /float(l_est)
-        size[0] = size[1]/ratio
+        size[0] = old_div(size[1],ratio)
         self.resize(size[0]+200,size[1])
         
         self.viewOrtho.getBound.connect(self.displayBound)
@@ -78,13 +84,13 @@ class drappingMain(QtGui.QMainWindow):
         self.ui.label_6.setText(str(-round(box[1][0],0)))
     
     def saveOrtho(self):
-        reply = QtGui.QMessageBox.question(self, 'Message',
-        "Continue with the current purple bounding box ?", QtGui.QMessageBox.Yes | 
-        QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, 'Message',
+        "Continue with the current purple bounding box ?", QtWidgets.QMessageBox.Yes | 
+        QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
         if reply == QMessageBox.Yes:
             meterPerPixel = self.ui.spinBox.value()
-            totPixN = (self.l_nord/meterPerPixel)*self.viewOrtho.resolution
-            totPixE = (self.l_est/meterPerPixel)*self.viewOrtho.resolution
+            totPixN = (old_div(self.l_nord,meterPerPixel))*self.viewOrtho.resolution
+            totPixE = (old_div(self.l_est,meterPerPixel))*self.viewOrtho.resolution
             self.viewOrtho.getViewPortZoom()
             orthoSavedParam = [totPixN, totPixE, self.viewOrtho.ParamViewport]
             a = self.viewOrtho.getMaxBufferSize()
@@ -99,8 +105,8 @@ class drappingMain(QtGui.QMainWindow):
             
             #Load image
             image = misc.imread(self.picture_name)
-            print self.picture_name, 'self.picture_name'
-            print image.shape, 'shape'
+            print((self.picture_name, 'self.picture_name'))
+            print((image.shape, 'shape'))
             
             #img = QImage(picture_name)
             #img.width()/float( img.height())

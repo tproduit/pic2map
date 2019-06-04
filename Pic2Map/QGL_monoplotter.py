@@ -8,11 +8,17 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import str
+from past.utils import old_div
 from OpenGL.GL import *
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4.QtOpenGL import *
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtOpenGL import *
 from OpenGL.GLU import *
 from numpy import sqrt, cos, sin, array, pi, linalg, dot
 from OpenGL.GL.ARB.vertex_buffer_object import *
@@ -62,14 +68,14 @@ class QGLMonoplotter(QGLWidget):
         self.drawPurpleCross = False
         
     def purpleCross(self,x,y,z):
-        if isinstance(y,(float,int,long)):
+        if isinstance(y,(float,int)):
             winx, winy, winz = gluProject(x,y,z,self.modelview,self.projection,self.viewport)
             if winx > 0 and winx < self.l_x and winy > 0 and winy < self.l_y and winz < 0.9999:
                 z_buff = glReadPixels( winx, winy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
                 # Check if the reprojection is not too close (if the point is behind a mountain)
-                if (winz-z_buff)/sqrt(1-winz) < 0.01:
-                    self.purpleX = winx/self.l_x
-                    self.purpleY = winy/self.l_y
+                if old_div((winz-z_buff),sqrt(1-winz)) < 0.01:
+                    self.purpleX = old_div(winx,self.l_x)
+                    self.purpleY = old_div(winy,self.l_y)
                 else:
                     self.purpleX = -1
                     self.purpleY = -1     
@@ -80,7 +86,7 @@ class QGLMonoplotter(QGLWidget):
             return
         
     def lineEditBufferAppend(self):
-        self.lineEditBuffer.append((self.currentEditX/self.l_x,self.currentEditY/self.l_y))
+        self.lineEditBuffer.append((old_div(self.currentEditX,self.l_x),old_div(self.currentEditY,self.l_y)))
         
     def clearLayers(self):
         self.PointLayers = []
@@ -106,9 +112,9 @@ class QGLMonoplotter(QGLWidget):
     def mousePressEvent(self,event):
          self.last_pos = event.pos()
          modifiers = QApplication.keyboardModifiers()
-         print 'mousePress'
+         print('mousePress')
          if(modifiers == Qt.ControlModifier):
-                 print 'if1'
+                 print ('if1')
                  x = event.x()
                  self.currentEditX = x
                  y = float(self.viewport[3]) -event.y()
@@ -117,7 +123,7 @@ class QGLMonoplotter(QGLWidget):
                  z = glReadPixels( x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
                  result = gluUnProject( x, y, z, self.modelview, self.projection, self.viewport)
                  if z != 1.0:
-                    print 'if2'
+                    print('if2')
                     # If the click is done out of the DEM (above horizon), z is equal to 1.0
                     self.blow.emit([-result[0],result[2], event.button()])
 
@@ -132,7 +138,7 @@ class QGLMonoplotter(QGLWidget):
          self.currentEditX = x
          y = float(self.viewport[3]) -event.y()
          self.currentEditY = y
-         z = 0.0
+         #z = 0.0
          z = glReadPixels( x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
          result = gluUnProject( x, y, z, self.modelview, self.projection, self.viewport)
          if z != 1.0:
@@ -160,8 +166,8 @@ class QGLMonoplotter(QGLWidget):
             if winx > 0 and winx < self.l_x and winy > 0 and winy < self.l_y and winz < 0.9999:
                 z_buff = zBuffer[int(winx),int(winy)]
                 # Check if the reprojection is not too close (if the point is behind a mountain)
-                if (winz-z_buff)/sqrt(1-winz) < 0.01:
-                        pointArray.append((winx/self.l_x, winy/self.l_y))
+                if old_div((winz-z_buff),sqrt(1-winz)) < 0.01:
+                        pointArray.append((old_div(winx,self.l_x), old_div(winy,self.l_y)))
                         if attributeTest:
                             # If the symbology is graduated or categorized, we need the attribute value
                             SizeColorIndices.append(SizeColorArray[count])
@@ -199,8 +205,8 @@ class QGLMonoplotter(QGLWidget):
                 if winx > 0 and winx <= self.l_x and winy > 0 and winy < self.l_y:
                     z_buff = zBuffer[int(winx),int(winy)]
                     # check if the reprojection is not too close (check if the vertex is behind a mountain)
-                    if (winz-z_buff)/sqrt(1-winz) < 0.01:
-                        new_segmentUV.append([winx/self.l_x,winy/self.l_y])
+                    if old_div((winz-z_buff),sqrt(1-winz)) < 0.01:
+                        new_segmentUV.append([old_div(winx,self.l_x),old_div(winy,self.l_y)])
                         if vertex == last:
                             #If it is the last vertex, we store the segment information
                             segmentArrayUV.append(new_segmentUV)
@@ -238,8 +244,8 @@ class QGLMonoplotter(QGLWidget):
     def unProj(self,winx,winy,winz):
           input = [0,0,0,0]
           objectCoordinate = [0,0,0]
-          input[0]=(winx-self.viewport[0])/self.viewport[2]*2.0-1.0
-          input[1]=(winy-self.viewport[1])/self.viewport[3]*2.0-1.0
+          input[0]=old_div((winx-self.viewport[0]),self.viewport[2])*2.0-1.0
+          input[1]=old_div((winy-self.viewport[1]),self.viewport[3])*2.0-1.0
           input[2]=2.0*winz-1.0
           input[3]=1.0
           output = dot(self.m,input)
@@ -324,7 +330,7 @@ class QGLMonoplotter(QGLWidget):
          glLightfv( GL_LIGHT0, GL_POSITION, [0,0,1,1])
          gluLookAt( self.pos[0],  self.pos[1],  self.pos[2],
                 self.lookat[0], self.lookat[1], self.lookat[2],
-                 0.0, cos(self.roll*pi/180), sin(self.roll*pi/180))
+                 0.0, cos(old_div(self.roll*pi,180)), sin(old_div(self.roll*pi,180)))
         
          glMatrixMode(GL_PROJECTION)
          glLoadIdentity()
@@ -520,7 +526,7 @@ class QGLMonoplotter(QGLWidget):
                          LineArray = self.LineLayers[LineCounter]
                          for segment in LineArray:
                              nVert = len(segment)
-                             x,y = segment[int(nVert/2)]
+                             x,y = segment[int(old_div(nVert,2))]
                              labelCounter += 1
                              self.renderText(x+self.labelSettings[2]/100.0, y-self.labelSettings[3]/100.0, 0.0, str(labels[labelCounter]), self.labelSettings[1])
                                
@@ -569,7 +575,7 @@ class QGLMonoplotter(QGLWidget):
         img = QImage(self.picture_name)
         img = QGLWidget.convertToGLFormat(img)
         glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width(), img.height(),
-                0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits().asstring(img.numBytes()))
+                0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits().asstring(img.byteCount()))
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
         glBindTexture(GL_TEXTURE_2D, 0)
@@ -599,7 +605,7 @@ class QGLMonoplotter(QGLWidget):
             glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 )
         self.count = len(self.m_indices)
 
-        if self.pos == None:
+        if self.pos is None:
             self.pos = [self.numpy_verts[0][0], self.numpy_verts[0][1]*1.1, self.numpy_verts[0][2]]
-        if self.lookat == None:
+        if self.lookat is None:
             self.lookat = self.numpy_verts[self.count/2.0]

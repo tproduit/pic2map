@@ -9,14 +9,17 @@
 # warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
 # the GNU General Public License for more details.
 
+from builtins import str
+from builtins import range
+from builtins import object
 import platform
 import csv
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-PCI, PCJ, LOCX, LOCY, LOCZ, CHECK, ERROR, PIXERROR = range(8)
-
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+PCI, PCJ, LOCX, LOCY, LOCZ, CHECK, ERROR, PIXERROR = list(range(8))
 MAGIC_NUMBER = 0x570C4
 FILE_VERSION = 1
 
@@ -35,6 +38,7 @@ class GCP(object):
 
 
 class GCPTableModel(QAbstractTableModel):
+
     def __init__(self, filename=""):
         super(GCPTableModel, self).__init__()
         self.filename = filename
@@ -125,7 +129,7 @@ class GCPTableModel(QAbstractTableModel):
         if index.isValid() and 0 <= index.row() < len(self.GCPs):
             GCP = self.GCPs[index.row()]
             column = index.column()
-            if type(value) == unicode:
+            if type(value) == str:
                 try:
                     value = float(value)
                 except:
@@ -147,8 +151,7 @@ class GCPTableModel(QAbstractTableModel):
             elif column == PIXERROR:
                 GCP.pixerror = value
             self.dirty = True
-            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                      index, index)
+            self.dataChanged.emit(index, index, [Qt.EditRole])
             return True
         return False
 
@@ -171,29 +174,30 @@ class GCPTableModel(QAbstractTableModel):
         return True
 
 
-    def load(self, filename):
+    def load(self, filename, delete):
 
         exception = None
         fh = None
         
         self.filename = filename####
+        if delete == QMessageBox.Yes:
+            self.GCPs = []
         
         try:
             if not filename:
-                raise IOError, "no filename specified for loading"
+                raise IOError("no filename specified for loading")
             
             elif filename.find('.dat') != -1:
                 fh = QFile(filename)
                 if not fh.open(QIODevice.ReadOnly):
-                    raise IOError, unicode(fh.errorString())
+                    raise IOError(str(fh.errorString()))
                 stream = QDataStream(fh)
                 magic = stream.readInt32()
                 if magic != MAGIC_NUMBER:
-                    raise IOError, "unrecognized file type"
+                    raise IOError("unrecognized file type")
                 fileVersion = stream.readInt16()
                 if fileVersion != FILE_VERSION:
-                    raise IOError, "unrecognized file type version"
-                self.GCPs = []
+                    raise IOError("unrecognized file type version")
                 while not stream.atEnd():
                     picture_i = stream.readQVariant()
                     picture_j = stream.readQVariant()
@@ -209,7 +213,7 @@ class GCPTableModel(QAbstractTableModel):
                 self.dirty = False
                 
             elif filename.find('.csv') != -1:
-                f = open(filename, 'rb')
+                f = open(filename, 'r')
                 try:
                     gcpReader = csv.reader(f)
                     
@@ -229,11 +233,10 @@ class GCPTableModel(QAbstractTableModel):
                             self.locals_y.add(local_y)
                             self.locals_z.add(local_z)
                         i+=1
-
                 finally:
                     f.close()
                 
-        except IOError, e:
+        except IOError as e:
             exception = e
         finally:
             if fh is not None:
@@ -248,13 +251,13 @@ class GCPTableModel(QAbstractTableModel):
         fh = None
         try:
             if not filename:
-                raise IOError, "no filename specified for saving"
+                raise IOError("no filename specified for saving")
             if filename.find('.dat')==-1:
                 filename = filename+'.dat'
             
             fh = QFile(filename)
             if not fh.open(QIODevice.WriteOnly):
-                raise IOError, unicode(fh.errorString())
+                raise IOError(str(fh.errorString()))
             stream = QDataStream(fh)
             stream.writeInt32(MAGIC_NUMBER)
             stream.writeInt16(FILE_VERSION)
@@ -267,7 +270,7 @@ class GCPTableModel(QAbstractTableModel):
                 stream.writeQVariant(GCP.local_y)
                 stream.writeQVariant(GCP.local_z)
             self.dirty = False
-        except IOError, e:
+        except IOError as e:
             exception = e
         finally:
             if fh is not None:
@@ -281,9 +284,9 @@ class GCPTableModel(QAbstractTableModel):
         if filename.find('.csv')==-1:
             filename = filename+'.csv'
             
-        f = open(filename, 'wb')
+        f = open(filename, 'w')
         try:
-            writer = csv.writer(f)
+            writer = csv.writer(f, lineterminator="\n")
             writer.writerow( ('line', 'column', 'X', 'Y', 'Z') )
             for GCP in self.GCPs:
                 writer.writerow( (GCP.picture_i, GCP.picture_j, GCP.local_x, GCP.local_y, GCP.local_z) )
@@ -296,7 +299,7 @@ class GCPTableModel(QAbstractTableModel):
         for i in range(0,8):
             index = self.index(rowIndex, i)
             dat = self.data(index)
-            if not isinstance(dat, (int, long, float)):
+            if not isinstance(dat, (int, float)):
                 valid = 0
         return valid
 

@@ -1,10 +1,13 @@
 from OpenGL.GL import *
-from PyQt4 import QtGui
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4.QtOpenGL import *
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtOpenGL import *
 from OpenGL.GLU import *
 import sys
+
+
 
 class CheckVersion(QGLWidget):
     # create an openGL context for checking the version

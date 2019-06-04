@@ -10,16 +10,19 @@
  ***************************************************************************/
 """
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from ui_disp_ini import Ui_disp_ini
+from builtins import str
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from .ui_disp_ini import Ui_Dialog
 import webbrowser
 import os
 
-class Initialization_dialog(QtGui.QDialog):
+class Initialization_dialog(QtWidgets.QDialog):
     def __init__(self):
-        QtGui.QDialog.__init__(self)
-        self.ui = Ui_disp_ini()
+        QtWidgets.QDialog.__init__(self)
+        self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.center()
         
@@ -29,16 +32,16 @@ class Initialization_dialog(QtGui.QDialog):
         self.ui.lineEdit_2.setText("") 
              
         openFile = self.ui.toolButton
-        QtCore.QObject.connect(openFile, QtCore.SIGNAL('clicked()'),self.showDialog)
+        openFile.clicked.connect(self.showDialog)
         openFile = self.ui.toolButtonDEM
-        QtCore.QObject.connect(openFile, QtCore.SIGNAL('clicked()'),self.showDialogDEM)
+        openFile.clicked.connect(self.showDialogDEM)
         
-        QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL('helpRequested()'),self.helpWindow)
-        QtCore.QObject.connect(self.ui.checkBox, QtCore.SIGNAL('stateChanged(int)'),self.orthoActivate)
+        self.ui.buttonBox.helpRequested.connect(self.helpWindow)
+        self.ui.checkBox.stateChanged[int].connect(self.orthoActivate)
         
-        QtCore.QObject.connect(self.ui.lineEditDEM, QtCore.SIGNAL("dropped"), self.dropEvent)
+        self.ui.lineEditDEM.dropped.connect(self.dropEvent)
         self.openOrtho = self.ui.toolButton_2
-        QtCore.QObject.connect(self.openOrtho, QtCore.SIGNAL('clicked()'),self.showDialogOrtho)
+        self.openOrtho.clicked.connect(self.showDialogOrtho)
         self.ui.lineEdit_2.setReadOnly(True)
         self.currentPath = '/home'
         self.setAcceptDrops(True)
@@ -61,32 +64,31 @@ class Initialization_dialog(QtGui.QDialog):
         
         
     def helpWindow(self):
-        name = os.path.realpath(__file__)
-        name = name.rsplit('\\', 3)
-        url = name[0]+str("/plugins/Pic2Map/help/build/html/index.html")
+        name = os.path.dirname(os.path.abspath(__file__))
+        url = name + "/help/build/html/index.html"
         url.replace("\\","/")
         webbrowser.open(url,new=2)
         
     def center(self):
         qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
     
     def showDialogOrtho(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath)
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath)[0]
         self.ui.lineEdit_2.setText(fname)
         if fname:
              self.currentPath = fname.rsplit("/",1)[0]
         
     def showDialog(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath)
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath)[0]
         self.ui.lineEdit.setText(fname)
         if fname:
              self.currentPath = fname.rsplit("/",1)[0]
         
     def showDialogDEM(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath, "Images (*.tiff *.tif)")
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath, "Images (*.tiff *.tif)")[0]
         self.ui.lineEditDEM.setText(fname)
         if fname:
              self.currentPath = fname.rsplit("/",1)[0]
