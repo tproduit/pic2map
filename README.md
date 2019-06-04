@@ -2,21 +2,20 @@
 Pic2Map's documentation!
 ========================
 
-This plugin was initially developed during  Gillian Milani's master thesis at EPFL in the [LASIG laboratory](http://lasig.epfl.ch). 
+This plugin was initially developed during  Gillian Milani's [master thesis](https://documents.epfl.ch/groups/l/la/lasig-unit/www/pic2map/rapport_PdM_gmilani.pdf) at EPFL in the [LASIG laboratory](http://lasig.epfl.ch). 
 It is based on  *An open tool to register landscape oblique images and generate their synthetic models. 
 T. Produit and D. Tuia. 
 In Open Source Geospatial Research and Education Symposium (OGRS), 2012*.
 
-The development was supported by the EPFL and the Swiss National Park.
-This documentation was written by G. Milani and adapted by T. Produit.
+The development was supported by the EPFL, the Swiss National Park. The migration to QGIS3 was performed by *Ministère des Forêts, de la Faune et des Parcs, Québec*.
 
 Comments and questions can be send to: timothee.produit[at]gmail.com
 
-February 2016
+June 2019
 
 
-1. Concepts
-========
+# Concepts
+
 The goal of the plugin is to provide an interaction between a picture and the map. 
 Hence, the plugin has two main functionalities.
 
@@ -29,12 +28,12 @@ Hence, the plugin has two main functionalities.
 The steps to use Pic2Map are the following:
 
 1. Load a landscape picture and the corresponding DEM.
-2. Determine the orientation of the camera with GCP (or alternatively navigate the provided 3D virtual interface or Google Earth)
+2. Determine the orientation of the camera with GCP
 3. Use the *monoplotter* to project vector data in the photograph or to project the picture on the map.
 
 
-2. Installation and testing dataset
-================================
+# Installation and testing dataset
+
 You can download the plugin directly from the QGIS plugin repository.
 
 `Plugins --> Manage ans install plugins... --> settings Tab --> Enable experimental plugins...`. 
@@ -47,30 +46,23 @@ Copy the data outside the original folder to use it.
 A technical introduction video can be found [here](https://www.youtube.com/watch?v=3Wic6PYUaKU).
 
 
-3. System requirement
-==================
-The plugin was tested with QGIS 2.2 to 2.12, it seems to be more stable with 64bits version of QGIS.
+# System requirement
+
+The plugin was tested with QGIS 3.4.
  
-OpenGL 3.0 is required for Framebuffer support. 
-If Framebuffer is not supported, some tool capabilities are restricted.
+OpenGL is required to show the 3D view. To install openGL in a windows environment:
 
-You may have problem with Opengl.GL under Ubuntu. 
-In this case, use the following commands and try again:
-
-    `sudo easy_install pyopengl`
-
-    `sudo apt-get install python python-opengl python-qt4 python-qt4-gl`
-
-If you get a scipy error run this command:
-  `sudo apt-get install python-numpy python-scipy python-matplotlib`
+`python -m pip install pyOpenGL
+python -m pip install pyOpenGL_accelerate
+`
 
 
-4. Data requirement
-================
-* An oblique picture (png, jpeg, tiff etc.)
+# Data requirement
+
+* A picture (png, jpeg, tiff etc.)
 * A DEM in tiff format 
-* (An orthoimage to render the 3D image and detect GCPs)
-* (Vector layer to be overlaid on the picture)
+* [Optional] An orthoimage to render the 3D image and detect GCPs
+* [Optional] Vector layer to be overlaid on the picture
 
 High resolution DEM and orthoimage can slow down (or crash) the plugin. 
 Clip the DEM according to the image footprint and try to balance between performance and quality.
@@ -78,8 +70,8 @@ Clip the DEM according to the image footprint and try to balance between perform
 Ensure that the layers are in the **same PROJECTED Coordinate Reference System**
 
 
-5. GCPs digitization
-=================
+# GCPs digitization
+
 GCP are similar locations clicked in the picture (2D) and in the canvas (3D). 
 A minimum of 6 GCP has to be provided if no information about the camera orientation is available. 
 Each GCP helps to gain precision for the camera orientation.
@@ -104,7 +96,8 @@ The GCP digitalization interface is divided in five main areas:
 ![GCP interface](images/GCPApproach.png)
 
 
-###The Scene
+## The Scene
+
 It is a view of the picture.
 
 You can select a GCP in the table and then click on the scene to provide the 2D coordinates. 
@@ -118,7 +111,8 @@ You can select a GCP in the table and then click on the scene to provide the 2D 
 * ![toolbar12](images/toolbar12.png)  Zoom on the selected GCP in the scene and in the canvas
 
 
-###The GCP table
+## The GCP table
+
 The two first columns record the 2D picture coordinates. 
 
 The three next columns are the world coordinates (East, Nord and altitude). 
@@ -145,7 +139,8 @@ In the last column, you have an indication of the error. It is a measure of the 
 * ![toolbar8](images/toolbar8.png)  Change display setting of GCPs
 
 
-###The 3D toolbar
+## The 3D toolbar
+
 * ![toolbar9](images/toolbar9.png)  Open the pose estimation dialog box
 
 * ![toolbar10](images/toolbar10.png)  Open the 3D viewer. 
@@ -170,17 +165,17 @@ Information about the capabilites in 3D viewer:
 * `alt + Left Click`: fix the position of the camera at the clicked position
 
 
-6. Camera Orientation
-==================
+# Camera Orientation
+
 The goal of the orientation is to compute the location, the orientation (azimuth, tilt, roll) and the focal of the camera (the field of view or zoom).
 
 
-###Rough orientation
+## Rough orientation
 If the rough location of the camera is unknown, you can use the `Add --> Photo` tool of Google Earth. 
 The picture orientation can be recorded as a KML file and loaded with pic2map.
 
 
-###Accurate orientation
+## Accurate orientation
 The camera orientation window opens with a click on the ![Camera Orientation](images/toolbar9.png) button. 
 A camera parameter can be:
 
@@ -194,48 +189,48 @@ Check the pose estimation by opening the 3D viewer.
 It is initialized at the computed orientation.
 
 
-7. Monoplotting
-============
+# Monoplotting
+
 The monplotting interface is reached with the ![Play](images/toolbar11.png) button.
 
-###Vector layer overlay
+## Vector layer overlay
 A point or line layer which is visible in the map will be overlaid on the picture if the `Refresh Layers` button is clicked. 
 The symbology and labels used in the canvas are reproduced in the picture. 
 You can overlay simple, categorized or graduated symbology. 
 However, you cannot use complex symbology, like point represented by stars or double lines representations.
 You can press on `label settings` for controlling label appearance. 
 
-![Vector Overlay](images/visualisation.png) button.
+![Vector Overlay](images/visualisation.png)
 
-###Measurements
+## Measurements
 The monoplotter can be clicked with **`Ctrl+click`**. 
 You can choose to measure objects in the map plane (2D) or in 3D (on the DEM surface).
 
 The measure tool doesn't measure directly in the picture but projects the click of the mouse in the canvas. 
 This implies a strange behavior: if a precise measurement is required, you have to zoom in the canvas.
 
-###Digitization of new vector layer
+## Digitization of new vector layer
 The layer to be filled has to be active and in edition mode in the canvas. 
 The `new feature` button is toggled. 
 New points or new line vertices can be directly clicked in the picture with **`Ctrl+click`**
 
 If you want to do precise digitization in the picture, you have to zoom at the right place in the canvas.
 
-###Orthorectification 
+## Orthorectification 
 Each pixel of the picture is linked to a 3D geographic coordinate. 
 The orthorectification uses this information to interpolate the orthorectified picture. 
 **The accuracy depends on the DEM and GCP quality. Due to the oblique geometry large errors can be observed in some regions.**
 
-###Geographic coordinates of the pixels
+## Geographic coordinates of the pixels
 The 3D geographic coordinates of each pixel can be saved as tiff images.
 
-###Geometry analysis
+## Geometry analysis
 This function computes three plots. The first plot shows the surface of a pixel which varies with the distance and the angle of incidence.
 The two other plots show the angle of incidence.
 
 This function is usefull to choose a good camera location to sense a landscape.
 
-###Footprint
+## Footprint
 This function generates a vector layer which contains the area sensed by the camera.
 
 
