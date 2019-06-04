@@ -1,6 +1,5 @@
 
-Pic2Map's documentation!
-========================
+# Documentation
 
 This plugin was initially developed during  Gillian Milani's [master thesis](https://documents.epfl.ch/groups/l/la/lasig-unit/www/pic2map/rapport_PdM_gmilani.pdf) at EPFL in the [LASIG laboratory](http://lasig.epfl.ch). 
 It is based on  *An open tool to register landscape oblique images and generate their synthetic models. 
@@ -8,6 +7,13 @@ T. Produit and D. Tuia.
 In Open Source Geospatial Research and Education Symposium (OGRS), 2012*.
 
 The development was supported by the EPFL, the Swiss National Park. The migration to QGIS3 was performed by *Ministère des Forêts, de la Faune et des Parcs, Québec*.
+
+Contributors:
+
+* https://github.com/gilliM
+* https://github.com/tproduit 
+* https://github.com/frpin33
+* https://github.com/jfbourdon
 
 Comments and questions can be send to: timothee.produit[at]gmail.com
 
