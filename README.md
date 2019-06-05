@@ -19,6 +19,22 @@ Comments and questions can be send to: timothee.produit[at]gmail.com
 
 June 2019
 
+# Installation
+
+The plugin was tested with QGIS 3.4.
+ 
+OpenGL is required to show the 3D view. To install openGL:
+
+```
+python -m pip install pyOpenGL
+python -m pip install pyOpenGL_accelerate
+```
+
+OpenGL must be installed from the Python installed for QGIS. For instance `C:\OSGeo4W64\apps\Python37`
+
+You can download the plugin directly from the QGIS plugin repository.
+
+`Plugins --> Manage ans install plugins... --> settings Tab --> Enable experimental plugins...`. 
 
 # Concepts
 
@@ -38,30 +54,13 @@ The steps to use Pic2Map are the following:
 3. Use the *monoplotter* to project vector data in the photograph or to project the picture on the map.
 
 
-# Installation and testing dataset
-
-You can download the plugin directly from the QGIS plugin repository.
-
-`Plugins --> Manage ans install plugins... --> settings Tab --> Enable experimental plugins...`. 
-
-Then, you can install the plugin by searching the plugin in the list.
+# Testing dataset
 
 The original plugin folder contains a dataset for testing the plugin. 
-Copy the data outside the original folder to use it.
+*Copy the data outside* the original folder to use it.
 
 A technical introduction video can be found [here](https://www.youtube.com/watch?v=3Wic6PYUaKU).
 
-
-# System requirement
-
-The plugin was tested with QGIS 3.4.
- 
-OpenGL is required to show the 3D view. To install openGL in a windows environment:
-
-```
-python -m pip install pyOpenGL
-python -m pip install pyOpenGL_accelerate
-```
 
 
 # Data requirement

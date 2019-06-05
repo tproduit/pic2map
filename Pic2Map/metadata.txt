@@ -1,29 +1,22 @@
 ; the next section is mandatory
-
 [general]
-name = Pic2Map
-email= timothee.produit@gmail.com
-author = Gillian Milani and Timothée Produit
-qgisMinimumVersion  = 3.0
-description = Compute the 3D orientation of a picture and provide the interaction between the picture and the map. 
-version = version 3.0
+name=Pic2Map
+email=timothee.produit@gmail.com
+author=Gillian Milani, Timothée Produit, Frederik Pineault
+qgisMinimumVersion =3.4
+description=Compute the 3D orientation of a picture and provide the interaction between the picture and the map. 
+about=Pic2map has two goals. First, it is used to compute the location and orientation of a picture with 3D Ground Control Points. The orientation can be saved in a Google Earth format. Second, it provides the interaction between the map and the picture through a Digital Elevation Model. Vector layers can be overlaid on the picture, geographic vector layer can be digitized directly in the picture, the picture can be "orthorectified".
+The plugin requires qt opengl python support (on Debian and derivates: python-qt4-gl). It was successfully tested in QGIS 64bits on Ubuntu and Windows.
+version=version 3.1
+tracker=https://github.com/tproduit/pic2map/issues
+repository=https://github.com/tproduit/pic2map/
 ; end of mandatory metadata
 
 ; start of optional metadata
+category=Raster
 homepage=https://github.com/tproduit/pic2map/blob/master/README.md
-repository=https://github.com/tproduit/pic2map/
-about = Pic2map has two goals. First, it is used to compute the orientation of a picture with 3D Ground Control Points. The orientation can be saved in a Google Earth format. Second, it provides the interaction between the map and the picture through a Digital Elevation Model. Vector layers can be overlaid on the picture, geographic vector layer can be digitized directly in the picture, the picture can be "orthorectified".
-The plugin requires qt opengl python support (on Debian and derivates: python-qt4-gl). It was successfully tested in QGIS 64bits on Ubuntu and Windows.
-; tags are in comma separated value format, spaces are allowed
+changelog=3.1 - Migration to QGIS 3
 tags=picture, perspective, pose estimation, orientation, orthorectification, monoplotting
-; tracker=https://github.com/gilliM/pic2mapGit/issues?state=open
-; these metadata can be empty
 icon=icon.png
-
-; experimental flag
 experimental=True
-
-; deprecated flag (applies to the whole plugin and not only to the uploaded version)
 deprecated=False
-
-
