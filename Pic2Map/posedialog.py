@@ -84,7 +84,7 @@ class Pose_dialog(QtWidgets.QDialog):
             result = self.report.exec_()
         else:
             QMessageBox.warning(self, "Estimation - Error",
-                    "There is currently not estimation of position done with GCPs")
+                    "There is currently no estimation of position done with GCPs")
         
     def estimatePose(self):
         

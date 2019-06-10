@@ -43,7 +43,7 @@ from .D3View import D3_view
 # FIXME QtXml is no longer supported.
 from PyQt5 import QtXml
 from .exifInfo import ExifInfo
-import os
+import os, time
         
 try:
     QString = str
@@ -90,6 +90,7 @@ class GetGCPMainWindow(QMainWindow):
         # There are generated at each pose estimation
         self.uvTableAll = []
         self.uvTableActivated = []
+        self.boolPose = False
         # goToMonoplot is a flag used by closeEvent
         self.goToMonoplot = False
         
@@ -513,6 +514,8 @@ class GetGCPMainWindow(QMainWindow):
         # get needed inputs for pose estimation
         self.poseDialogue = Pose_dialog(self.model, self.paramPoseView, self.positionFixed, self.sizePicture, self.whoIsChecked, self.pathToData)
         self.poseDialogue.update.connect(self.updatePose)
+        self.poseDialogue.uiPose.buttonBox.accepted.connect(self.acceptPose)
+        self.poseDialogue.uiPose.buttonBox.rejected.connect(self.cancelPose)
         self.poseDialogue.setWindowModality(Qt.ApplicationModal)
         self.poseDialogue.show()
         result = self.poseDialogue.exec_()
@@ -542,11 +545,38 @@ class GetGCPMainWindow(QMainWindow):
                 self.XYZUsed = self.poseDialogue.xyzUsed
                 self.GCPErrorPos()
                 self.getPositionInCanvas()
-                self.ui.statusbar.showMessage('You can save GCPs in .dat file or save pose estimation in KML file')
-                self.GoToMonoplotterButton.setEnabled(True)
+                self.boolPose = True
+                
         except ValueError:
            QMessageBox.warning(self, "Pose Estimation- Error","Failed to estimate pose, consider to provide apriori values")
-           
+    
+    def acceptPose(self):
+        if self.boolPose == True:
+            self.ui.statusbar.showMessage('You can save GCPs in .dat file or save pose estimation in KML file')
+            self.GoToMonoplotterButton.setEnabled(True)
+        else : 
+            self.ui.statusbar.showMessage('You need to pose an estimation')
+    
+    def cancelPose(self):
+        if hasattr(self, 'reprojectedCross'):
+            for ri in self.reprojectedCross:
+                self.canvas.scene().removeItem(ri)  
+        self.uvTableActivated = []
+        self.uvTableAll = []
+        self.refreshPictureGCP() 
+        self.lookat = [0,0,0]
+        self.upWorld = [0,0,0]    
+        self.pos = [0,0,0]
+        self.FOV = 0
+        self.roll = 0
+        self.paramPoseView = [0,0,0,0,0,0,0,0,0]
+        self.whoIsChecked = [True, False, False]*7
+        self.XYZUsed = None
+        self.GoToMonoplotterButton.setEnabled(False)
+        self.boolPose = False
+        self.ui.statusbar.showMessage('The pose estimation has been cancel')
+
+    
     def getPositionInCanvas(self):
         self.canvas.scene().removeItem(self.poseCanvas)
         xPos = -self.paramPoseView[0]
