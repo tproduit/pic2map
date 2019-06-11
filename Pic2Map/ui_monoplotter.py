@@ -161,7 +161,7 @@ class Ui_Monoplotter(object):
         
         self.analysis.setText(_translate("Monoplotter", "Geometry analysis", None))
         
-        self.footprint.setText(_translate("Monoplotter", "Footprint", None))
+        self.footprint.setText(_translate("Monoplotter", "Compute footprint", None))
         self.retour.setText(_translate("Monoplotter", "Back to GCPWindow", None))
         
         if not useOrthoImage:

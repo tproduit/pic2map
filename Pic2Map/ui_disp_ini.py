@@ -72,7 +72,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Landscape Mapping - Initialization"))
         self.labelDEM.setText(_translate("Dialog", "Input Elevation Model"))
         self.label.setText(_translate("Dialog", "Input Picture"))
         self.toolButtonDEM.setText(_translate("Dialog", "..."))

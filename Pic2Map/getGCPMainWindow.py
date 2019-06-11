@@ -706,9 +706,19 @@ class GetGCPMainWindow(QMainWindow):
         
     def wheelEvent(self, event):
         #Zoom with wheel
+        self.ui.graphicsView.setTransformationAnchor(QGraphicsView.NoAnchor)
+        self.ui.graphicsView.setResizeAnchor(QGraphicsView.NoAnchor)
+
+        oldPos = self.ui.graphicsView.mapToScene(event.pos())
+
         factor = 1.41 ** (event.angleDelta().y() / 240.0)
         self.ui.graphicsView.scale(factor, factor)
         self.zoomFactor = factor
+
+        newPos = self.ui.graphicsView.mapToScene(event.pos())
+        delta = newPos - oldPos
+        self.ui.graphicsView.translate(delta.x(), delta.y())
+
 
     def Pan(self, pressed):
         #Pan when pan button is toogled
