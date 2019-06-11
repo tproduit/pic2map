@@ -832,14 +832,29 @@ class GetGCPMainWindow(QMainWindow):
         path = self.pathToData + '/GCPs'
         fLoadName = QFileDialog.getOpenFileName(self, 'Load your GCPs',\
                                                   path,"File (*.dat *.csv)")[0]
+        discard = False
+        cancel = False
         if self.model.rowCount() > 0 :                                           
-            result = QMessageBox.question(self, "Message" ,"Do you want to delete the current GCPs", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        else :
-            result = QMessageBox.No
-        if fLoadName:
+            QuestionBox = QMessageBox()
+            QuestionBox.setIcon(QMessageBox.Warning)
+            QuestionBox.setWindowTitle("GCPs already present")
+            QuestionBox.setText("How do you want to handle the current GCPs?")
+            QuestionBox.setStandardButtons(QMessageBox.Discard | QMessageBox.Save | QMessageBox.Cancel)
+            ButtonDiscard = QuestionBox.button(QMessageBox.Discard)
+            ButtonDiscard.setText("Replace")
+            ButtonSave = QuestionBox.button(QMessageBox.Save)
+            ButtonSave.setText("Keep")
+            ret = QuestionBox.exec_()
+            if ret == QMessageBox.Discard :
+                discard = True
+            elif ret == QMessageBox.Cancel :
+                cancel = True
+            #result = QMessageBox.warning(self, "GCPs already present" ,"How do you want to handle the current GCPs?", QMessageBox.Discard | QMessageBox.Save | QMessageBox.Cancel, QMessageBox.No)
+
+        if fLoadName and cancel == False :
             try:
                 self.model.beginResetModel()
-                self.model.load(fLoadName, result)
+                self.model.load(fLoadName, discard)
                 self.model.endResetModel()
                 self.refreshPictureGCP()
                 self.refreshCanvasGCP()

@@ -174,13 +174,13 @@ class GCPTableModel(QAbstractTableModel):
         return True
 
 
-    def load(self, filename, delete):
+    def load(self, filename, delete=False):
 
         exception = None
         fh = None
         
         self.filename = filename####
-        if delete == QMessageBox.Yes:
+        if delete == True:
             self.GCPs = []
         
         try:
