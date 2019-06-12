@@ -11,6 +11,9 @@
 """
 
 from builtins import str
+import qgis.core
+from qgis.core import *
+from qgis.gui import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -20,21 +23,23 @@ import webbrowser
 import os
 
 class Initialization_dialog(QtWidgets.QDialog):
-    def __init__(self):
+    def __init__(self, iface):
         QtWidgets.QDialog.__init__(self)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.center()
-        
+        self.iface = iface
         self.ui.lineEdit.setText("")
         self.ui.lineEditDEM.setText("")
         self.ui.checkBox.setChecked(False)
         self.ui.lineEdit_2.setText("") 
+        self.activeLayer = False
              
         openFile = self.ui.toolButton
         openFile.clicked.connect(self.showDialog)
         openFile = self.ui.toolButtonDEM
         openFile.clicked.connect(self.showDialogDEM)
+        self.ui.pushButtonDEM.clicked.connect(self.getActiveLayer)
         
         self.ui.buttonBox.helpRequested.connect(self.helpWindow)
         self.ui.checkBox.stateChanged[int].connect(self.orthoActivate)
@@ -92,3 +97,12 @@ class Initialization_dialog(QtWidgets.QDialog):
         self.ui.lineEditDEM.setText(fname)
         if fname:
              self.currentPath = fname.rsplit("/",1)[0]
+
+    def getActiveLayer(self):
+        try :
+            fname = self.iface.activeLayer().dataProvider().dataSourceUri()
+        except :
+            return
+        self.ui.lineEditDEM.setText(fname)
+        self.currentPath = fname.rsplit("/",1)[0]
+        self.activeLayer = True

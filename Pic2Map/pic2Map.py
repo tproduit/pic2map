@@ -88,7 +88,7 @@ class Pic2Map(object):
       # the DEM
       # the ortho-image if used
       # the approach chosen for georeferencing
-      self.ini = Initialization_dialog()
+      self.ini = Initialization_dialog(self.iface)
       self.ini.setWindowModality(Qt.ApplicationModal)
       result = self.ini.exec_()
       
@@ -97,6 +97,7 @@ class Pic2Map(object):
       self.DEM_name = self.ini.ui.lineEditDEM.text()
       self.useOrtho = self.ini.ui.checkBox.isChecked()
       self.pathToData = self.ini.currentPath
+      self.activeLayer = self.ini.activeLayer
 
       # See if OK was pressed
 
@@ -305,7 +306,8 @@ class Pic2Map(object):
           # check if the map units are meter
           if self.crs.mapUnits() != 0:
               raise CRSERROR
-          self.iface.addRasterLayer(self.DEM_name)
+          if self.activeLayer == False :
+              self.iface.addRasterLayer(self.DEM_name)
           
           if not rlayer2.isValid():
               QMessageBox.warning(QWidget(), "IO - Error",
