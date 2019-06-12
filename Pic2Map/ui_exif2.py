@@ -63,7 +63,7 @@ class Ui_Exif2(object):
 
     def retranslateUi(self, Exif2):
         _translate = QtCore.QCoreApplication.translate
-        Exif2.setWindowTitle(_translate("Exif2", "Dialog"))
+        Exif2.setWindowTitle(_translate("Exif2", "EXIF Information"))
         self.groupBox.setTitle(_translate("Exif2", "Focal"))
         self.textBrowserFocal.setHtml(_translate("Exif2", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

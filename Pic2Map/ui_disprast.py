@@ -9,7 +9,8 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
-
+
+
 from PyQt5.QtGui import *
 try:
     _encoding = QtWidgets.QApplication.UnicodeUTF8
@@ -49,6 +50,7 @@ class Ui_disprast(object):
         self.dockWidget_2 = QtWidgets.QDockWidget(disprast)
         self.dockWidget_2.setFloating(False)
         self.dockWidget_2.setObjectName("dockWidget_2")
+        self.dockWidget_2.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
         self.dockWidgetContents_2 = QtWidgets.QWidget()
         self.dockWidgetContents_2.setObjectName("dockWidgetContents_2")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.dockWidgetContents_2)
@@ -65,7 +67,7 @@ class Ui_disprast(object):
         self.tableView.setFrameShape(QtWidgets.QFrame.Box)
         self.tableView.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.tableView.setMidLineWidth(2)
-        self.tableView.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.tableView.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.tableView.setAutoScroll(False)
         self.tableView.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked)
@@ -102,6 +104,7 @@ class Ui_disprast(object):
 
     def retranslateUi(self, disprast):
         disprast.setWindowTitle(_translate("disprast", "Pose estimation - GCP Approach", None))
+        self.dockWidget_2.setWindowTitle(_translate("disprast", "GCP Table", None))
 
 class TableView(QtWidgets.QTableView):
     """

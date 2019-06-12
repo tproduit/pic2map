@@ -54,7 +54,7 @@ class ExifInfo(QDialog):
                 Est = dict[4][0][0]+dict[4][1][0]/float(dict[4][1][1])/60.0
                 crsTarget = QgsCoordinateReferenceSystem(crs.postgisSrid())
                 crsSource = QgsCoordinateReferenceSystem(4326)
-                xform = QgsCoordinateTransform(crsSource, crsTarget)
+                xform = QgsCoordinateTransform(crsSource, crsTarget, QgsProject.instance())
                 LocalPos = xform.transform(QgsPointXY(Est,Nord))
                 text += 'Nord: ' + str(LocalPos[0])
                 text += '\nEst: ' +str(LocalPos[1])
@@ -88,7 +88,7 @@ class ExifInfo(QDialog):
                 QMessageBox.warning(QMainWindow(),"Error","Float format not valid")
             else:
                 FocalLengthMM = old_div(self.FocalLength[0],self.FocalLength[1])
-                focalPixel = round(old_div(FocalLengthMM,sensorDiagFloat*self.diag),2)
+                focalPixel = round(old_div(FocalLengthMM,sensorDiagFloat)*self.diag,2)
                 self.ui_exif_info.lineFocalPixel.setText(str(focalPixel))
                 self.fixFocalSignal.emit(focalPixel)
         else: 

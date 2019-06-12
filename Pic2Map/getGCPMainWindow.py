@@ -211,6 +211,8 @@ class GetGCPMainWindow(QMainWindow):
         #Use a TableModel for managing GCP
         self.model = GCPTableModel()#"GCPs.dat")#######
         self.ui.tableView.setModel(self.model)
+        for i in range(0,8) :
+            self.ui.tableView.setColumnWidth(i,89)  
         header = self.ui.tableView.horizontalHeader()
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.refreshPictureGCP) 
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.refreshCanvasGCP) 
@@ -406,7 +408,7 @@ class GetGCPMainWindow(QMainWindow):
         self.paramPoseView[6] = focalPixel
         self.whoIsChecked[19] = False
         self.whoIsChecked[20] = True
-        self.whoIsChecked[21] = True
+        self.whoIsChecked[18] = False
 
         
     def zoomOnCross(self):
@@ -569,7 +571,7 @@ class GetGCPMainWindow(QMainWindow):
         self.pos = [0,0,0]
         self.FOV = 0
         self.roll = 0
-        self.paramPoseView = [0,0,0,0,0,0,0,0,0]
+        self.paramPoseView[:6] = [0,0,0,0,0,0]
         self.whoIsChecked = [True, False, False]*7
         self.XYZUsed = None
         self.GoToMonoplotterButton.setEnabled(False)
@@ -801,6 +803,7 @@ class GetGCPMainWindow(QMainWindow):
     def closeEvent(self, event):
         # two different behaviors occurs. Either we quit the window, either we go to the monoplotter
         self.clearMapTool2.emit()
+        self.ui.dockWidget_2.setFloating(False)
         if not self.goToMonoplot:    
             reply = QMessageBox.question(self, 'Message',
                 "Are you sure to quit?", QMessageBox.Yes | 
@@ -844,7 +847,7 @@ class GetGCPMainWindow(QMainWindow):
                                                   path,"File (*.dat *.csv)")[0]
         discard = False
         cancel = False
-        if self.model.rowCount() > 0 :                                           
+        if self.model.rowCount() > 0  and fLoadName :                                           
             QuestionBox = QMessageBox()
             QuestionBox.setIcon(QMessageBox.Warning)
             QuestionBox.setWindowTitle("GCPs already present")
@@ -859,7 +862,6 @@ class GetGCPMainWindow(QMainWindow):
                 discard = True
             elif ret == QMessageBox.Cancel :
                 cancel = True
-            #result = QMessageBox.warning(self, "GCPs already present" ,"How do you want to handle the current GCPs?", QMessageBox.Discard | QMessageBox.Save | QMessageBox.Cancel, QMessageBox.No)
 
         if fLoadName and cancel == False :
             try:
