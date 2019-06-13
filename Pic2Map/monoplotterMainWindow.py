@@ -384,9 +384,18 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         
         # Save extent to a new Shapefile
         path = self.pathToData + "/footprint.shp"
-        shapeSaveName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Footprint" ,path, "Shape file (*.shp)")
-        if shapeSaveName:
+        shapeSaveName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Footprint" ,path, "Shapefile (*.shp)")
+        
+        filename = (shapeSaveName.split("/")[-1]).split(".")[0]
+        layers = QgsProject.instance().mapLayers()
+        for layer in layers:
+            f = QFileInfo(layer)
+            baseName = f.filePath().split("_")[0]
+            if filename == baseName : 
+                pass
+                #QgsProject.instance().removeMapLayer(f.filePath())
             
+        if shapeSaveName:
             outShapefile = shapeSaveName
             outDriver = ogr.GetDriverByName("ESRI Shapefile")
             
@@ -419,7 +428,7 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
             outDataSource.Destroy()
             ret = QMessageBox.question(self, "Load Footprint", "Do you want to load the footprint on the canvas?", QMessageBox.Yes| QMessageBox.No)
             if ret == QMessageBox.Yes : 
-                self.iface.addVectorLayer(outShapefile, "Footprint", "ogr")
+                self.iface.addVectorLayer(outShapefile, filename, "ogr")
             
 #        #Generate visibility mask
 #        #########################«

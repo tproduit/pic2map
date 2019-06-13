@@ -68,9 +68,9 @@ class GCPTableModel(QAbstractTableModel):
         column = index.column()
         if role == Qt.DisplayRole:
             if column == PCI:
-                return  float("{0:.1f}".format(GCP.picture_i))
+                return  round(GCP.picture_i,1)
             elif column == PCJ:
-                return  float("{0:.1f}".format(GCP.picture_j))
+                return  round(GCP.picture_j,1)
             elif column == LOCX:
                 return  GCP.local_x
             elif column == LOCY:
@@ -80,9 +80,9 @@ class GCPTableModel(QAbstractTableModel):
             elif column == CHECK:
                 return  GCP.check
             elif column == ERROR:
-                return  float("{0:.1f}".format(GCP.error))
+                return  round(GCP.error,1)
             elif column == PIXERROR:
-                return  float("{0:.1f}".format(GCP.pixerror))
+                return  round(GCP.pixerror,1)
         elif role == Qt.TextAlignmentRole:
             return  int(Qt.AlignLeft|Qt.AlignVCenter)
         elif role == Qt.BackgroundColorRole:

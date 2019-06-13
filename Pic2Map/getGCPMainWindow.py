@@ -139,15 +139,17 @@ class GetGCPMainWindow(QMainWindow):
         
         url = name + "/icons/toolbar5.png"
         url.replace("\\","/")
-        ZoomInButton = QAction(QIcon(url), 'Zoom In', self)
-        self.ui.toolbarView.addAction(ZoomInButton)
-        ZoomInButton.triggered.connect(self.ZoomIn)
+        self.ZoomInButton = QAction(QIcon(url), 'Zoom In', self)
+        self.ui.toolbarView.addAction(self.ZoomInButton)
+        self.ZoomInButton.setCheckable(True)
+        self.ZoomInButton.triggered.connect(self.ZoomIn)
         
         url = name+ "/icons/toolbar6.png"
         url.replace("\\","/")
-        ZoomOutButton = QAction(QIcon(url), 'Zoom Out', self)
-        self.ui.toolbarView.addAction(ZoomOutButton)
-        ZoomOutButton.triggered.connect(self.ZoomOut)
+        self.ZoomOutButton = QAction(QIcon(url), 'Zoom Out', self)
+        self.ui.toolbarView.addAction(self.ZoomOutButton)
+        self.ZoomOutButton.setCheckable(True)
+        self.ZoomOutButton.triggered.connect(self.ZoomOut)
         
         url = name+ "/icons/toolbar7.png"
         url.replace("\\","/")
@@ -217,7 +219,6 @@ class GetGCPMainWindow(QMainWindow):
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.refreshPictureGCP) 
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.refreshCanvasGCP) 
         self.ui.graphicsView.wheelEvent = self.wheelEvent
-        
         self.canvas.extentsChanged.connect(self.refreshCanvasGCPNumbers)
         
         # Following are parameters for pose estimation
@@ -710,7 +711,7 @@ class GetGCPMainWindow(QMainWindow):
         #Zoom with wheel
         self.ui.graphicsView.setTransformationAnchor(QGraphicsView.NoAnchor)
         self.ui.graphicsView.setResizeAnchor(QGraphicsView.NoAnchor)
-
+        
         oldPos = self.ui.graphicsView.mapToScene(event.pos())
 
         factor = 1.41 ** (event.angleDelta().y() / 240.0)
@@ -721,28 +722,26 @@ class GetGCPMainWindow(QMainWindow):
         delta = newPos - oldPos
         self.ui.graphicsView.translate(delta.x(), delta.y())
 
-
     def Pan(self, pressed):
         #Pan when pan button is toogled
-        self.ui.tableView.clearSelection ()
         if pressed:
+            self.ui.tableView.clearSelection()
             self.ui.graphicsView.setDragMode(QGraphicsView.ScrollHandDrag)
         else:
             self.ui.graphicsView.setDragMode(QGraphicsView.NoDrag)
     
-    def ZoomOut(self):
+    def ZoomOut(self, pressed):
         # zoom out when correponding button is pushed
-        matrix = QTransform()
-        self.zoomFactor *= 0.75
-        matrix.scale(self.zoomFactor, self.zoomFactor)
-        self.ui.graphicsView.setTransform(matrix)
+        self.ui.statusbar.showMessage('Zoom out by clicking on the picture')
+        if self.ZoomInButton.isChecked():
+            self.ZoomInButton.setChecked(False) 
         
-    def ZoomIn(self):
+        
+    def ZoomIn(self, pressed):
         # zoom in when correponding button is pushed
-        matrix = QTransform()
-        self.zoomFactor *= 1.5
-        matrix.scale(self.zoomFactor, self.zoomFactor)
-        self.ui.graphicsView.setTransform(matrix) 
+        self.ui.statusbar.showMessage('Zoom in by clicking on the picture')
+        if self.ZoomOutButton.isChecked():
+            self.ZoomOutButton.setChecked(False)         
         
     def selectCanvasPoint(self, point):
         # Canvas coordinates for selected GCP are set
@@ -807,7 +806,7 @@ class GetGCPMainWindow(QMainWindow):
         if not self.goToMonoplot:    
             reply = QMessageBox.question(self, 'Message',
                 "Are you sure to quit?", QMessageBox.Yes | 
-                QMessageBox.No, QMessageBox.No)
+                QMessageBox.No, QMessageBox.Yes)
             if reply == QMessageBox.Yes:
                 event.accept()
                 if hasattr(self, 'view3D'):
@@ -919,13 +918,26 @@ class GetGCPMainWindow(QMainWindow):
     
     def newPictureGCP(self, ev):
         # mouse event when click on the picture with the GCP tool
-        self.ui.statusbar.showMessage('Get 3D coordinate by clicking in the QGIS canvas or in the 3D view')
-        if self.ui.tableView.selectedIndexes() != []:
-            if ev.button() == Qt.LeftButton:
-                a = ev.scenePos()
-                newDataIndex = self.updatePictureGCP(a)
-                self.refreshPictureGCP()
+        self.ui.graphicsView.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.ui.graphicsView.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
         
+        if self.ZoomInButton.isChecked():
+            self.zoomFactor = 1.5
+            self.ui.graphicsView.scale(self.zoomFactor, self.zoomFactor)
+            
+        elif self.ZoomOutButton.isChecked():
+            self.zoomFactor = 0.66
+            self.ui.graphicsView.scale(self.zoomFactor, self.zoomFactor)
+
+        else :
+
+            self.ui.statusbar.showMessage('Get 3D coordinate by clicking in the QGIS canvas or in the 3D view')
+            if self.ui.tableView.selectedIndexes() != []:
+                if ev.button() == Qt.LeftButton:
+                    a = ev.scenePos()
+                    newDataIndex = self.updatePictureGCP(a)
+                    self.refreshPictureGCP()
+            
     def refreshPictureGCP(self):
         if self.model :#############
             # redraw all GCP in the picture

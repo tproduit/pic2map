@@ -88,18 +88,20 @@ class Initialization_dialog(QtWidgets.QDialog):
         
     def showDialog(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath)[0]
-        self.ui.lineEdit.setText(fname)
         if fname:
-             self.currentPath = fname.rsplit("/",1)[0]
+            self.ui.lineEdit.setText(fname)
+            self.currentPath = fname.rsplit("/",1)[0]
         
     def showDialogDEM(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath, "Images (*.tiff *.tif)")[0]
-        self.ui.lineEditDEM.setText(fname)
         if fname:
-             self.currentPath = fname.rsplit("/",1)[0]
+            self.ui.lineEditDEM.setText(fname)
+            self.currentPath = fname.rsplit("/",1)[0]
 
     def getActiveLayer(self):
         try :
+            if str(type(self.iface.activeLayer())) != "<class 'qgis._core.QgsRasterLayer'>" :
+                QMessageBox.warning(self, "Layer type invalid", "Please select a Qgs Raster Layer")
             fname = self.iface.activeLayer().dataProvider().dataSourceUri()
         except :
             return
