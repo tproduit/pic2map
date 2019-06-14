@@ -279,7 +279,7 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         plt.show()
         
         self.noSave = False
-            
+    
     def footprint(self):
         
         #If the coordinates are not yet computed
@@ -391,9 +391,11 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         for layer in layers:
             f = QFileInfo(layer)
             baseName = f.filePath().split("_")[0]
-            if filename == baseName : 
-                pass
-                #QgsProject.instance().removeMapLayer(f.filePath())
+            if filename == baseName :
+                QgsProject.instance().removeMapLayer(f.filePath())
+                canvas = self.iface.mapCanvas()
+                canvas.refresh()
+
             
         if shapeSaveName:
             outShapefile = shapeSaveName
@@ -405,6 +407,9 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
             
             # Create the output shapefile
             outDataSource = outDriver.CreateDataSource(outShapefile)
+            if outDataSource is None :
+                QMessageBox.warning(self, "Footprint is an active layer", "You tried to delete a footprint present in the project layer. \n The footprint layer was remove. Please try again")
+                return 0
             
             #Create projection
             footprintSRS = osr.SpatialReference()
@@ -526,6 +531,7 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
 #            outRaster = None
 #        dst_ds.Destroy()
         self.noSave = False
+        return 1 
         
     def saveXYZmatrix(self):
                         
