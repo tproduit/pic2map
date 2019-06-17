@@ -302,12 +302,14 @@ class Pic2Map(object):
          
           # Get coordinate system
           self.crs = rlayer2.crs()
-         
           # check if the map units are meter
           if self.crs.mapUnits() != 0:
               raise CRSERROR
           if self.activeLayer == False :
               self.iface.addRasterLayer(self.DEM_name)
+          self.iface.zoomToActiveLayer()
+          self.iface.mapCanvas().setDestinationCrs(self.crs)
+        
           
           if not rlayer2.isValid():
               QMessageBox.warning(QWidget(), "IO - Error",

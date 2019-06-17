@@ -219,6 +219,7 @@ class GetGCPMainWindow(QMainWindow):
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.refreshPictureGCP) 
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.refreshCanvasGCP) 
         self.ui.graphicsView.wheelEvent = self.wheelEvent
+        self.countZoom = 0    
         self.canvas.extentsChanged.connect(self.refreshCanvasGCPNumbers)
         
         # Following are parameters for pose estimation
@@ -716,8 +717,8 @@ class GetGCPMainWindow(QMainWindow):
 
         factor = 1.41 ** (event.angleDelta().y() / 240.0)
         self.zoomFactor = factor
-        self.ui.graphicsView.scale(factor, factor)
-        #self.resizeCross(factor)
+        #self.ui.graphicsView.scale(factor, factor)
+        self.resizeCross(factor)
 
         newPos = self.ui.graphicsView.mapToScene(event.pos())
         delta = newPos - oldPos
@@ -748,30 +749,23 @@ class GetGCPMainWindow(QMainWindow):
         self.PanButton.setChecked(False)
         self.ui.graphicsView.setDragMode(QGraphicsView.NoDrag)    
         
+ 
     def resizeCross(self, factor):
-        if factor > 1 :
-            
-            if self.iconSet.SM <= 1 :
-                self.iconSet.SM = 1
-            else:    
-                self.iconSet.SM -= 2
-            
-            if self.iconSet.WM <= 1 :
-                self.iconSet.WM = 1
-            else:    
-                self.iconSet.WM -= 0.5 
-        else :
-            if self.iconSet.SM >= 80 :
-                self.iconSet.SM = 80
-            else:    
-                self.iconSet.SM += 1
-            
-            if self.iconSet.WM >= 20 :
-                self.iconSet.WM = 20
-            else:    
-                self.iconSet.WM += 0.25 
-            
+        #redraw the crosses on the picture with a size matching the zoom
+        ZoomInFactor = 1.1874
+        ZoomOutFactor = 0.8421
+        if factor > 1  and self.countZoom < 25 :
+            self.countZoom += 1
+            self.ui.graphicsView.scale(ZoomInFactor, ZoomInFactor)
+        elif factor < 1 and self.countZoom > -2 :
+            self.countZoom -= 1
+            self.ui.graphicsView.scale(ZoomOutFactor, ZoomOutFactor)
+        
+        self.iconSet.SM = int((-2.8148*self.countZoom) + 74.37)
+        self.iconSet.WM = int((-0.6666*self.countZoom) + 18.66)    
         self.refreshPictureGCP()
+        
+
 
     def selectCanvasPoint(self, point):
         # Canvas coordinates for selected GCP are set
@@ -808,7 +802,8 @@ class GetGCPMainWindow(QMainWindow):
 
     def saveGCP(self):
         # Save GCP to a .dat file
-        path = self.pathToData + '/GCPs'
+        gcpName = '/' + (self.picture_name.split(".")[0]).split("/")[-1] + '_GCPs'
+        path = self.pathToData + gcpName
         fSaveName = QFileDialog.getSaveFileName(self, 'Save your GCPs as...',\
                                                   path,"File (*.dat)")[0]
         if fSaveName:
@@ -871,7 +866,8 @@ class GetGCPMainWindow(QMainWindow):
 
     def loadGCP(self):
         # load GCP from .dat file
-        path = self.pathToData + '/GCPs'
+        gcpName = '/' + (self.picture_name.split(".")[0]).split("/")[-1] + '_GCPs'
+        path = self.pathToData + gcpName
         fLoadName = QFileDialog.getOpenFileName(self, 'Load your GCPs',\
                                                   path,"File (*.dat *.csv)")[0]
         discard = False
@@ -953,11 +949,11 @@ class GetGCPMainWindow(QMainWindow):
         
         if self.ZoomInButton.isChecked():
             self.zoomFactor = 1.5
-            self.ui.graphicsView.scale(self.zoomFactor, self.zoomFactor)
+            self.resizeCross(self.zoomFactor)
             
         elif self.ZoomOutButton.isChecked():
             self.zoomFactor = 0.66
-            self.ui.graphicsView.scale(self.zoomFactor, self.zoomFactor)
+            self.resizeCross(self.zoomFactor)
 
         else :
             self.ui.statusbar.showMessage('Get 3D coordinate by clicking in the QGIS canvas or in the 3D view')

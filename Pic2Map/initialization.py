@@ -34,6 +34,7 @@ class Initialization_dialog(QtWidgets.QDialog):
         self.ui.checkBox.setChecked(False)
         self.ui.lineEdit_2.setText("") 
         self.activeLayer = False
+        self.filePathSave = os.path.dirname(os.path.abspath(__file__)) + "/config.txt"
              
         openFile = self.ui.toolButton
         openFile.clicked.connect(self.showDialog)
@@ -48,7 +49,21 @@ class Initialization_dialog(QtWidgets.QDialog):
         self.openOrtho = self.ui.toolButton_2
         self.openOrtho.clicked.connect(self.showDialogOrtho)
         self.ui.lineEdit_2.setReadOnly(True)
-        self.currentPath = '/home'
+        
+        try : 
+            projectName = QgsProject.instance().fileName()
+            f = open(self.filePathSave, "r")
+            oldpath = f.readline()
+            if oldpath :
+                self.currentPath = oldpath
+            elif projectName :
+                self.currentPath = os.path.dirname(projectName)
+            else :
+                self.currentPath = '/home'
+            f.close()
+        except : 
+            self.currentPath = '/home'
+
         self.setAcceptDrops(True)
         
     def dragEnterEvent(self, event):
@@ -91,12 +106,19 @@ class Initialization_dialog(QtWidgets.QDialog):
         if fname:
             self.ui.lineEdit.setText(fname)
             self.currentPath = fname.rsplit("/",1)[0]
+            f = open(self.filePathSave, "w+")
+            f.write(self.currentPath)
+            f.close()
         
     def showDialogDEM(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath, "Images (*.tiff *.tif)")[0]
         if fname:
+            self.activeLayer = False
             self.ui.lineEditDEM.setText(fname)
             self.currentPath = fname.rsplit("/",1)[0]
+            f = open(self.filePathSave, "w+")
+            f.write(self.currentPath)
+            f.close()
 
     def getActiveLayer(self):
         try :
@@ -107,4 +129,7 @@ class Initialization_dialog(QtWidgets.QDialog):
             return
         self.ui.lineEditDEM.setText(fname)
         self.currentPath = fname.rsplit("/",1)[0]
+        f = open(self.filePathSave, "w+")
+        f.write(self.currentPath)
+        f.close()
         self.activeLayer = True
