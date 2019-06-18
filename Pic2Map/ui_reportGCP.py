@@ -34,7 +34,7 @@ class Ui_ReportGCP(object):
 
     def retranslateUi(self, ReportGCP):
         _translate = QtCore.QCoreApplication.translate
-        ReportGCP.setWindowTitle(_translate("ReportGCP", "Dialog"))
+        ReportGCP.setWindowTitle(_translate("ReportGCP", "Report on GCPs"))
         self.pushButton.setText(_translate("ReportGCP", "Save Report"))
 
 

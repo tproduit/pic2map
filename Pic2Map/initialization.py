@@ -21,6 +21,7 @@ from PyQt5.QtCore import *
 from .ui_disp_ini import Ui_Dialog
 import webbrowser
 import os
+from osgeo import gdal
 
 class Initialization_dialog(QtWidgets.QDialog):
     def __init__(self, iface):
@@ -41,6 +42,7 @@ class Initialization_dialog(QtWidgets.QDialog):
         openFile = self.ui.toolButtonDEM
         openFile.clicked.connect(self.showDialogDEM)
         self.ui.pushButtonDEM.clicked.connect(self.getActiveLayer)
+        self.ui.pushButtonCurrent.clicked.connect(self.getCurrentView)
         
         self.ui.buttonBox.helpRequested.connect(self.helpWindow)
         self.ui.checkBox.stateChanged[int].connect(self.orthoActivate)
@@ -133,3 +135,31 @@ class Initialization_dialog(QtWidgets.QDialog):
         f.write(self.currentPath)
         f.close()
         self.activeLayer = True
+    
+    def getCurrentView(self):
+        rect = self.iface.mapCanvas().extent()
+        proj = [rect.xMinimum(), rect.yMaximum(), rect.xMaximum(), rect.yMinimum()]
+        
+        try :
+            if str(type(self.iface.activeLayer())) != "<class 'qgis._core.QgsRasterLayer'>" :
+                QMessageBox.warning(self, "Layer type invalid", "Please select a Qgs Raster Layer")
+            fname = self.iface.activeLayer().dataProvider().dataSourceUri()
+        except :
+            return
+
+        self.currentPath = fname.rsplit("/",1)[0]
+        outName = self.currentPath + '/' + (fname.rsplit("/",1)[1]).split(".")[0] + "_CropToView.tif"      
+        f = open(self.filePathSave, "w+")
+        f.write(self.currentPath)
+        f.close()
+
+        activeLayer = self.iface.activeLayer()
+        QgsProject.instance().removeMapLayer(activeLayer)
+
+        gdal.Translate(outName, fname, projWin=proj)
+
+        self.ui.lineEditDEM.setText(outName)
+        self.iface.addRasterLayer(outName)
+        self.activeLayer = True
+
+

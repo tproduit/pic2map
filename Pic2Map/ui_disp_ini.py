@@ -38,7 +38,6 @@ class Ui_Dialog(object):
         self.gridLayout3.addWidget(self.pushButtonDEM, 1, 0, 1, 1)
         self.pushButtonCurrent = QtWidgets.QPushButton(Dialog)
         self.pushButtonCurrent.setObjectName("PushButtonCurrent")
-        self.pushButtonCurrent.setEnabled(False)
         self.gridLayout3.addWidget(self.pushButtonCurrent, 1,1,1,1)
         self.gridLayout.addWidget(self.groupBox2, 1, 0, 1, 4)
         
