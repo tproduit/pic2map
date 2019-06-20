@@ -29,10 +29,14 @@ from .ui_pose import Ui_Pose
 from copy import copy
 from numpy import any, zeros, array, sin, cos, dot, linalg, pi, asarray, mean, shape, sqrt, flipud, std, concatenate, ones, arccos, arcsin, arctan,arctan2, size, abs, matrix, diag, nonzero
 from .reportDialog import ReportDialog
+from osgeo import ogr, osr
+from qgis.core import *
+from qgis.gui import *
+import os
 
 class Pose_dialog(QtWidgets.QDialog):
     update = pyqtSignal()
-    def __init__(self, model, paramPosIni, positionFixed, sizePicture, whoIsChecked,pathToData):
+    def __init__(self, model, paramPosIni, positionFixed, sizePicture, whoIsChecked,pathToData,picture_name, iface,crs):
         #QtGui.QDialog.__init__(self)
         QtWidgets.QDialog.__init__(self)
         self.uiPose = Ui_Pose()
@@ -44,14 +48,19 @@ class Pose_dialog(QtWidgets.QDialog):
         self.whoIsChecked = whoIsChecked
         self.pathToData = pathToData
         self.xyzUnProjected = None
+        self.picture_name = picture_name
+        self.paramPosIni = paramPosIni
+        self.iface = iface
+        self.crs = crs
                 
         self.uiPose.commandLinkButton.clicked.connect(self.estimatePose)
         self.uiPose.reportButton.clicked.connect(self.showReportOnGCP)
+        self.uiPose.cameraPositionButton.clicked.connect(self.savePositionCamera)
         
         #Set previous estimated value to text boxes
         indice = 0
         for line in self.findChildren(QtWidgets.QLineEdit):
-                value = paramPosIni[indice]
+                value = self.paramPosIni[indice]
                 if indice == 0:
                     value *= -1
                 if indice > 2 and indice < 6:
@@ -317,6 +326,7 @@ class Pose_dialog(QtWidgets.QDialog):
             self.update.emit()
             # Create the report on GCP
             self.reportOnGCPs()
+            self.uiPose.cameraPositionButton.setEnabled(True)
 
     def LS(self,abscissa,observations,PARAM,x_fix,x_ini):
         # The initial parameters are the ones from DLT but where the radio button is set as free
@@ -716,3 +726,82 @@ class Pose_dialog(QtWidgets.QDialog):
             (R[2,0]*(x1-x0)+R[2,1]*(y1-y0)+R[2,2]*(z1-z0)))+v0;
 
         return ures,vres
+
+    def savePositionCamera(self) :
+        xPos = -self.result[0]
+        yPos = self.result[1]
+        point = ogr.Geometry(ogr.wkbPoint)
+        point.AddPoint(xPos, yPos)
+
+        camPosName = '/' + (self.picture_name.split(".")[0]).split("/")[-1] + '_CameraPosition'
+        path = self.pathToData + camPosName
+
+        shapeSaveName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Camera Position" ,path, "Shapefile (*.shp)")
+        
+        filename = (shapeSaveName.split("/")[-1]).split(".")[0]
+        layers = QgsProject.instance().mapLayers()
+        for layer in layers:
+            f = QFileInfo(layer)
+            head, sep, tail = f.filePath().partition("CameraPosition")
+            baseName = head + sep
+            if filename == baseName :
+                QgsProject.instance().removeMapLayer(f.filePath())
+                canvas = self.iface.mapCanvas()
+                canvas.refresh()
+
+            
+        if shapeSaveName:
+            outShapefile = shapeSaveName
+            outDriver = ogr.GetDriverByName("ESRI Shapefile")
+            
+            # Remove output shapefile if it already exists
+            if os.path.exists(outShapefile):
+                outDriver.DeleteDataSource(outShapefile)
+            
+            # Create the output shapefile
+            outDataSource = outDriver.CreateDataSource(outShapefile)
+            if outDataSource is None :
+                QMessageBox.warning(self, "Camera Position is an active layer", "You tried to delete a camera position present in the project layer. \n The camera postion layer was remove. Please try again")
+                return 0
+            
+            #Create projection
+            camPosSRS = osr.SpatialReference()
+            epsg = int(self.crs.authid().split(':')[1])
+            camPosSRS.ImportFromEPSG(epsg)#2056)
+            
+            outLayer = outDataSource.CreateLayer(filename, camPosSRS, geom_type = ogr.wkbPoint)
+            
+            # Add an ID field
+            XField = ogr.FieldDefn("X", ogr.OFTReal)
+            outLayer.CreateField(XField)
+            YField = ogr.FieldDefn("Y", ogr.OFTReal)
+            outLayer.CreateField(YField)
+            ZField = ogr.FieldDefn("Z", ogr.OFTReal)
+            outLayer.CreateField(ZField)
+            tiltField = ogr.FieldDefn("tilt", ogr.OFTReal)
+            outLayer.CreateField(tiltField)
+            headingField = ogr.FieldDefn("heading", ogr.OFTReal)
+            outLayer.CreateField(headingField)
+            swingField = ogr.FieldDefn("swing", ogr.OFTReal)
+            outLayer.CreateField(swingField)
+            nameField = ogr.FieldDefn("picture", ogr.OFTString)
+            outLayer.CreateField(nameField)
+            
+            # Create the feature and set values
+            featureDefn = outLayer.GetLayerDefn()
+            feature = ogr.Feature(featureDefn)
+            feature.SetGeometry(point)
+            feature.SetField("picture", (self.picture_name.split(".")[0]).split("/")[-1])
+            feature.SetField("X",-self.result[0])
+            feature.SetField("Y",self.result[1])
+            feature.SetField("Z",self.result[2])
+            feature.SetField("tilt",self.result[3])
+            feature.SetField("heading",self.result[4])
+            feature.SetField("swing",self.result[5])
+            outLayer.CreateFeature(feature)
+
+            # Close DataSource
+            outDataSource.Destroy()
+            ret = QMessageBox.question(self, "Load Camera Position", "Do you want to load the camera position on the canvas?", QMessageBox.Yes| QMessageBox.No)
+            if ret == QMessageBox.Yes : 
+                self.iface.addVectorLayer(outShapefile, filename, "ogr")

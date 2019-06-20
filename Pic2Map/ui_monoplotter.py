@@ -116,6 +116,13 @@ class Ui_Monoplotter(object):
         self.footprint.setObjectName("footprint")
         self.verticalLayout.addWidget(self.footprint)
 
+        self.simplifyFootprint = QtWidgets.QCheckBox(self.dockWidgetContents)
+        self.simplifyFootprint.setObjectName("simplifyFootprint")
+        self.simplifyFootprint.setText("Simplify footprint")
+        self.simplifyFootprint.setCheckable(True)
+        self.simplifyFootprint.setChecked(False)
+        self.verticalLayout.addWidget(self.simplifyFootprint)
+
         self.retour = QtWidgets.QPushButton(self.dockWidgetContents)
         self.retour.setObjectName("retour")
         self.verticalLayout.insertSpacing(-1, 30)

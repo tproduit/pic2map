@@ -17,6 +17,7 @@ class Ui_ReportGCP(object):
         self.gridLayout.setObjectName("gridLayout")
         self.reportBrowser = QtWidgets.QTextBrowser(ReportGCP)
         self.reportBrowser.setObjectName("reportBrowser")
+        self.reportBrowser.setStyleSheet('font-family : Courier')
         self.gridLayout.addWidget(self.reportBrowser, 0, 0, 1, 2)
         self.pushButton = QtWidgets.QPushButton(ReportGCP)
         self.pushButton.setObjectName("pushButton")

@@ -21,7 +21,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from .ui_reportGCP import Ui_ReportGCP
-from numpy import mean, min, max, std, zeros, sqrt
+from numpy import mean, min, max, std, zeros, sqrt, pi
 # create the dialog for zoom to point
 
 class ReportDialog(QtWidgets.QDialog):
@@ -39,7 +39,9 @@ class ReportDialog(QtWidgets.QDialog):
         self.pathToData = pathToData
         self.xyzUnProjected = xyzUnProjected
         self.totalPointsOnHill = 0
-        
+        paramList[3] = (paramList[3]*180)/pi 
+        paramList[4] = (paramList[4]*180)/pi
+        paramList[5] = (paramList[5]*180)/pi
         self.model = model
         rowCount = model.rowCount()
         errorsPixels = zeros((rowCount,1))
@@ -80,10 +82,10 @@ class ReportDialog(QtWidgets.QDialog):
             text += '\n' + str(round(std(errors3D),2)) 
             """
             text += '\n\nPose estimation parameters:'
-            paramText = ['X position','Y Position','Z Position','Tilt [rad]','Heading [rad]', 'Swing [rad]', 'Focal [pixel]']
+            paramText = ['X position','Y Position','Z Position','Tilt [°]','Heading [°]', 'Swing [°]', 'Focal [pixel]']
             for name, bool, value, prec in zip(paramText, paramBool, paramList, Qxx):
                 if bool:
-                    text += '\n'+ name + ', Free :' + ' ' + str(round(value,6)) + ' (Precision : '+ str(round(prec,6))  + ")"
+                    text += '\n'+ name + ', Free :' + ' ' + str(round(value,6)) + '\n(Precision : '+ str(round(prec,6))  + ")"
                 else:
                     text += '\n'+ name + ', Fixed: ' + ' ' + str(round(value,6))
                 

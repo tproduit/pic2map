@@ -310,6 +310,9 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
                     cellIsZero = False
                     coordUp.append((imX[j,i],imY[j,i]))
                 j+=1
+       
+        if self.ui.simplifyFootprint.isChecked() :       
+            coordUp = [coordUp[0], coordUp[-1]]
         coordUp = np.asarray(coordUp)
         
         #Generate coordinates of the right side of the image
@@ -320,6 +323,9 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
                 pass
             else:
                 coordRight.append((imX[j,i],imY[j,i]))
+        
+        if self.ui.simplifyFootprint.isChecked() :
+            coordRight = [coordRight[0], coordRight[-1]]
         coordRight = np.asarray(coordRight)
         
         #Generate coordinates of the left side of the image
@@ -330,6 +336,9 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
                 pass
             else:
                 coordLeft.append((imX[j,i],imY[j,i]))
+        
+        if self.ui.simplifyFootprint.isChecked() :
+            coordLeft = [coordLeft[0], coordLeft[-1]]
         coordLeft = np.asarray(coordLeft)
         
         #Generate coordinates of the bottom of the image
@@ -352,7 +361,9 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
            #     pass
            # else:
            #     coordDown.append((imX[j,i],imY[j,i]))
-        coordDown = np.asarray(coordDown)
+        if self.ui.simplifyFootprint.isChecked() :   
+            coordDown = [coordDown[0], coordDown[-1]]    
+        coordDown = np.asarray(coordDown)  
         
         #Stack and flip them to generate the polygon
         if coordRight.shape[0] == 0:
@@ -383,14 +394,26 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         poly.AddGeometry(ring)
         
         # Save extent to a new Shapefile
-        path = self.pathToData + "/footprint.shp"
+        if self.ui.simplifyFootprint.isChecked() :
+            footprintName = '/' + (self.picture_name.split(".")[0]).split("/")[-1] + '_footprintSimplify'
+            path = self.pathToData + footprintName
+        else :
+            footprintName = '/' + (self.picture_name.split(".")[0]).split("/")[-1] + '_footprint'
+            path = self.pathToData + footprintName
+
         shapeSaveName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Footprint" ,path, "Shapefile (*.shp)")
         
         filename = (shapeSaveName.split("/")[-1]).split(".")[0]
         layers = QgsProject.instance().mapLayers()
         for layer in layers:
             f = QFileInfo(layer)
-            baseName = f.filePath().split("_")[0]
+
+            if self.ui.simplifyFootprint.isChecked() :
+                head, sep, tail = f.filePath().partition("footprintSimplify")
+            else :
+                head, sep, tail = f.filePath().partition("footprint")
+
+            baseName = head + sep
             if filename == baseName :
                 QgsProject.instance().removeMapLayer(f.filePath())
                 canvas = self.iface.mapCanvas()
@@ -416,7 +439,7 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
             epsg = int(self.crs.authid().split(':')[1])
             footprintSRS.ImportFromEPSG(epsg)#2056)
             
-            outLayer = outDataSource.CreateLayer("footprint", footprintSRS, geom_type = ogr.wkbPolygon)
+            outLayer = outDataSource.CreateLayer(filename, footprintSRS, geom_type = ogr.wkbPolygon)
             
             # Add an ID field
             idField = ogr.FieldDefn("id", ogr.OFTInteger)

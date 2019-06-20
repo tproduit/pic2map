@@ -123,43 +123,41 @@ class Initialization_dialog(QtWidgets.QDialog):
             f.close()
 
     def getActiveLayer(self):
-        try :
-            if str(type(self.iface.activeLayer())) != "<class 'qgis._core.QgsRasterLayer'>" :
-                QMessageBox.warning(self, "Layer type invalid", "Please select a Qgs Raster Layer")
+
+        if str(type(self.iface.activeLayer())) != "<class 'qgis._core.QgsRasterLayer'>" :
+            QMessageBox.warning(self, "Layer type invalid", "Please select a Qgs Raster Layer")
+            
+        else:
             fname = self.iface.activeLayer().dataProvider().dataSourceUri()
-        except :
-            return
-        self.ui.lineEditDEM.setText(fname)
-        self.currentPath = fname.rsplit("/",1)[0]
-        f = open(self.filePathSave, "w+")
-        f.write(self.currentPath)
-        f.close()
-        self.activeLayer = True
+            self.ui.lineEditDEM.setText(fname)
+            self.currentPath = fname.rsplit("/",1)[0]
+            f = open(self.filePathSave, "w+")
+            f.write(self.currentPath)
+            f.close()
+            self.activeLayer = True
     
     def getCurrentView(self):
         rect = self.iface.mapCanvas().extent()
         proj = [rect.xMinimum(), rect.yMaximum(), rect.xMaximum(), rect.yMinimum()]
-        
-        try :
-            if str(type(self.iface.activeLayer())) != "<class 'qgis._core.QgsRasterLayer'>" :
+        if str(type(self.iface.activeLayer())) != "<class 'qgis._core.QgsRasterLayer'>" :
                 QMessageBox.warning(self, "Layer type invalid", "Please select a Qgs Raster Layer")
+        
+        else:    
             fname = self.iface.activeLayer().dataProvider().dataSourceUri()
-        except :
-            return
+            self.currentPath = fname.rsplit("/",1)[0]
+            
+            outName = self.currentPath + '/' + (fname.rsplit("/",1)[1]).split(".")[0] + "_CropToView.tif"      
+            f = open(self.filePathSave, "w+")
+            f.write(self.currentPath)
+            f.close()
 
-        self.currentPath = fname.rsplit("/",1)[0]
-        outName = self.currentPath + '/' + (fname.rsplit("/",1)[1]).split(".")[0] + "_CropToView.tif"      
-        f = open(self.filePathSave, "w+")
-        f.write(self.currentPath)
-        f.close()
+            activeLayer = self.iface.activeLayer()
+            self.iface.layerTreeView().layerTreeModel().rootGroup().findLayer(activeLayer).setItemVisibilityChecked(False)
 
-        activeLayer = self.iface.activeLayer()
-        QgsProject.instance().removeMapLayer(activeLayer)
+            gdal.Translate(outName, fname, projWin=proj)
 
-        gdal.Translate(outName, fname, projWin=proj)
-
-        self.ui.lineEditDEM.setText(outName)
-        self.iface.addRasterLayer(outName)
-        self.activeLayer = True
+            self.ui.lineEditDEM.setText(outName)
+            self.iface.addRasterLayer(outName)
+            self.activeLayer = True
 
 

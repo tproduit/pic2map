@@ -194,7 +194,7 @@ class Ui_Pose(object):
         self.gridLayout.addWidget(self.frame_2, 1, 1, 1, 4)
         self.commandLinkButton = QtWidgets.QCommandLinkButton(PoseDialog)
         self.commandLinkButton.setObjectName(_fromUtf8("commandLinkButton"))
-        self.gridLayout.addWidget(self.commandLinkButton, 2, 2, 1, 1)
+        self.gridLayout.addWidget(self.commandLinkButton, 2, 1, 1, 1)
         self.XPosFree.setChecked(True)
         self.YPosFree.setChecked(True)
         self.ZPosFree.setChecked(True)
@@ -203,15 +203,17 @@ class Ui_Pose(object):
         self.swingFree.setChecked(True)
         self.focalFree.setChecked(True)
         
-        self.reportButton = QtWidgets.QPushButton (PoseDialog)
+        self.reportButton = QtWidgets.QPushButton(PoseDialog)
         self.reportButton.setObjectName(_fromUtf8("reportButton"))
-        self.gridLayout.addWidget(self.reportButton, 2, 3, 1, 1)
+        self.gridLayout.addWidget(self.reportButton, 2, 2, 1, 1)
         
+        self.cameraPositionButton = QtWidgets.QPushButton(PoseDialog)
+        self.cameraPositionButton.setObjectName(_fromUtf8("cameraPositionButton"))
+        self.gridLayout.addWidget(self.cameraPositionButton, 2, 3, 1, 1)
+        self.cameraPositionButton.setEnabled(False)
 
         self.retranslateUi(PoseDialog)
-        #QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), PoseDialog.accept)
         self.buttonBox.accepted.connect(PoseDialog.accept)
-        #QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), PoseDialog.reject)
         self.buttonBox.rejected.connect(PoseDialog.reject)
         QtCore.QMetaObject.connectSlotsByName(PoseDialog)
         
@@ -368,6 +370,7 @@ class Ui_Pose(object):
         self.label_7.setText(_translate("PoseDialog", "swing [°]", None))
         self.label_8.setText(_translate("PoseDialog", "focal [pixel]", None))
         self.reportButton.setText(_translate("PoseDialog", "Report on GCPs", None))
+        self.cameraPositionButton.setText(_translate("PoseDialog" , "Export camera position", None))
 
         self.commandLinkButton.setText(_translate("PoseDialog", "Pose Estimation", None))
 

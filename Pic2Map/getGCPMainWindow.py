@@ -209,7 +209,11 @@ class GetGCPMainWindow(QMainWindow):
         # set a scene in the view
         self.scene = QGraphicsScene()
         self.ui.graphicsView.setScene(self.scene);
+        self.middleClick = False
+        self.oldPos = QPoint()
         self.scene.mousePressEvent = self.newPictureGCP
+        self.scene.mouseReleaseEvent = self.releaseWheel
+        #self.ui.graphicsView.mouseMoveEvent = self.mouseMouseWheel
         #Use a TableModel for managing GCP
         self.model = GCPTableModel()#"GCPs.dat")#######
         self.ui.tableView.setModel(self.model)
@@ -428,7 +432,7 @@ class GetGCPMainWindow(QMainWindow):
                    return
 
             matrix = QTransform()
-            zoomFactorOnCross = old_div(QDesktopWidget().screenGeometry().height(),(10.0*self.iconSet.SM))
+            zoomFactorOnCross = old_div(QDesktopWidget().screenGeometry().height(),(10.0*(self.sizePicture[0]/80.0)))
             matrix.scale(zoomFactorOnCross, zoomFactorOnCross)
             self.ui.graphicsView.setTransform(matrix)
             hOffset = old_div(self.ui.graphicsView.size().width(),(2.0*zoomFactorOnCross))
@@ -437,6 +441,8 @@ class GetGCPMainWindow(QMainWindow):
             vValue = (pos[1]-vOffset)*matrix.m22()
             self.ui.graphicsView.horizontalScrollBar().setValue(hValue)
             self.ui.graphicsView.verticalScrollBar().setValue(vValue)
+            self.countZoom = 13
+            self.resizeCross(1.21, True)
             self.setCanvasExtentSignal.emit((pos[2],pos[3]))
             self.ui.statusbar.showMessage('View zoomed on selected GCP')
         
@@ -516,11 +522,10 @@ class GetGCPMainWindow(QMainWindow):
         rowCount = self.model.rowCount()
        #  try :
         # get needed inputs for pose estimation
-        self.poseDialogue = Pose_dialog(self.model, self.paramPoseView, self.positionFixed, self.sizePicture, self.whoIsChecked, self.pathToData)
+        self.poseDialogue = Pose_dialog(self.model, self.paramPoseView, self.positionFixed, self.sizePicture, self.whoIsChecked, self.pathToData, self.picture_name, self.iface, self.crs)
         self.poseDialogue.update.connect(self.updatePose)
         self.poseDialogue.uiPose.buttonBox.accepted.connect(self.acceptPose)
         self.poseDialogue.uiPose.buttonBox.rejected.connect(self.cancelPose)
-        self.poseDialogue.setWindowModality(Qt.ApplicationModal)
         self.poseDialogue.show()
         result = self.poseDialogue.exec_()
         
@@ -717,7 +722,6 @@ class GetGCPMainWindow(QMainWindow):
 
         factor = 1.41 ** (event.angleDelta().y() / 240.0)
         self.zoomFactor = factor
-        #self.ui.graphicsView.scale(factor, factor)
         self.resizeCross(factor)
 
         newPos = self.ui.graphicsView.mapToScene(event.pos())
@@ -750,14 +754,14 @@ class GetGCPMainWindow(QMainWindow):
         self.ui.graphicsView.setDragMode(QGraphicsView.NoDrag)    
         
  
-    def resizeCross(self, factor):
+    def resizeCross(self, factor, zoomOnGCP=False):
         #redraw the crosses on the picture with a size matching the zoom
         ZoomInFactor = 1.1874
         ZoomOutFactor = 0.8421
-        if factor > 1  and self.countZoom < 25 :
+        if factor > 1  and self.countZoom < 25 and zoomOnGCP == False :
             self.countZoom += 1
             self.ui.graphicsView.scale(ZoomInFactor, ZoomInFactor)
-        elif factor < 1 and self.countZoom > -2 :
+        elif factor < 1 and self.countZoom > -2 and zoomOnGCP == False :
             self.countZoom -= 1
             self.ui.graphicsView.scale(ZoomOutFactor, ZoomOutFactor)
         
@@ -941,13 +945,39 @@ class GetGCPMainWindow(QMainWindow):
         self.resetToolSignal.emit()
         return index
 
+    def releaseWheel(self, ev): 
+        if ev.button() == Qt.MidButton :
+            self.middleClick = False
+            self.ui.graphicsView.setDragMode(QGraphicsView.NoDrag)
+        else : 
+            return
+
+    def mouseMouseWheel(self, ev):
+        if ev.button() == Qt.MidButton :
+            self.ui.graphicsView.setTransformationAnchor(QGraphicsView.NoAnchor)
+            self.ui.graphicsView.setResizeAnchor(QGraphicsView.NoAnchor) 
+                
+            newPos = self.ui.graphicsView.mapToScene(ev.pos())
+            self.oldPos = self.ui.graphicsView.mapToScene(self.oldPos)
+            delta = newPos - self.oldPos
+            self.oldPos = newPos.toPoint()
+            self.ui.graphicsView.translate(delta.x(), delta.y())
+
+
     
     def newPictureGCP(self, ev):
         # mouse event when click on the picture with the GCP tool
         self.ui.graphicsView.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.ui.graphicsView.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
+
+        if ev.button() == Qt.MidButton :
+            self.middleClick = True
+            self.ui.graphicsView.setDragMode(QGraphicsView.ScrollHandDrag)
+            pos = self.ui.graphicsView.mapToScene(ev.pos().toPoint())
+            fake = QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton, Qt.LeftButton,  ev.modifiers())
+            self.ui.graphicsView.mousePressEvent(fake)
         
-        if self.ZoomInButton.isChecked():
+        elif self.ZoomInButton.isChecked():
             self.zoomFactor = 1.5
             self.resizeCross(self.zoomFactor)
             
