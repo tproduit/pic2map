@@ -210,10 +210,8 @@ class GetGCPMainWindow(QMainWindow):
         self.scene = QGraphicsScene()
         self.ui.graphicsView.setScene(self.scene);
         self.middleClick = False
-        self.oldPos = QPoint()
         self.scene.mousePressEvent = self.newPictureGCP
         self.scene.mouseReleaseEvent = self.releaseWheel
-        #self.ui.graphicsView.mouseMoveEvent = self.mouseMouseWheel
         #Use a TableModel for managing GCP
         self.model = GCPTableModel()#"GCPs.dat")#######
         self.ui.tableView.setModel(self.model)
@@ -947,23 +945,9 @@ class GetGCPMainWindow(QMainWindow):
 
     def releaseWheel(self, ev): 
         if ev.button() == Qt.MidButton :
-            self.middleClick = False
             self.ui.graphicsView.setDragMode(QGraphicsView.NoDrag)
-        else : 
+        else :
             return
-
-    def mouseMouseWheel(self, ev):
-        if ev.button() == Qt.MidButton :
-            self.ui.graphicsView.setTransformationAnchor(QGraphicsView.NoAnchor)
-            self.ui.graphicsView.setResizeAnchor(QGraphicsView.NoAnchor) 
-                
-            newPos = self.ui.graphicsView.mapToScene(ev.pos())
-            self.oldPos = self.ui.graphicsView.mapToScene(self.oldPos)
-            delta = newPos - self.oldPos
-            self.oldPos = newPos.toPoint()
-            self.ui.graphicsView.translate(delta.x(), delta.y())
-
-
     
     def newPictureGCP(self, ev):
         # mouse event when click on the picture with the GCP tool
@@ -971,12 +955,13 @@ class GetGCPMainWindow(QMainWindow):
         self.ui.graphicsView.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
 
         if ev.button() == Qt.MidButton :
-            self.middleClick = True
+            width = (ev.scenePos().x()*self.ui.graphicsView.size().width())/self.sizePicture[0]
+            height = (ev.scenePos().y()*self.ui.graphicsView.size().height())/self.sizePicture[1]
             self.ui.graphicsView.setDragMode(QGraphicsView.ScrollHandDrag)
-            pos = self.ui.graphicsView.mapToScene(ev.pos().toPoint())
-            fake = QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton, Qt.LeftButton,  ev.modifiers())
+            pos = QPointF(width, height)
+            fake = QMouseEvent(QEvent.MouseButtonPress, pos , Qt.LeftButton, Qt.LeftButton,  ev.modifiers())
             self.ui.graphicsView.mousePressEvent(fake)
-        
+         
         elif self.ZoomInButton.isChecked():
             self.zoomFactor = 1.5
             self.resizeCross(self.zoomFactor)
@@ -1225,5 +1210,4 @@ class icon_settings(object):
         self.WC = 2
         self.colorC = QColor(0, 0, 255)
         self.colorM = QColor(255, 165, 0)
-        self.S3d = resolutionDEM
-        
+        self.S3d = resolutionDEM      
