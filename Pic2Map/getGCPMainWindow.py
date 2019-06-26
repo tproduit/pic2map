@@ -212,6 +212,8 @@ class GetGCPMainWindow(QMainWindow):
         self.middleClick = False
         self.scene.mousePressEvent = self.newPictureGCP
         self.scene.mouseReleaseEvent = self.releaseWheel
+        #self.ui.graphicsView.mousePressEvent = self.test
+        #self.scene.mouseMoveEvent = self.mouseMouseWheel
         #Use a TableModel for managing GCP
         self.model = GCPTableModel()#"GCPs.dat")#######
         self.ui.tableView.setModel(self.model)
@@ -803,15 +805,15 @@ class GetGCPMainWindow(QMainWindow):
         self.save()
 
     def saveGCP(self):
-        # Save GCP to a .dat file
+        # Save GCP to a .csv file
         gcpName = '/' + (self.picture_name.split(".")[0]).split("/")[-1] + '_GCPs'
         path = self.pathToData + gcpName
         fSaveName = QFileDialog.getSaveFileName(self, 'Save your GCPs as...',\
-                                                  path,"File (*.dat)")[0]
+                                                  path,"File (*.csv)")[0]
         if fSaveName:
             try:
                 self.model.save(fSaveName)
-                self.ui.statusbar.showMessage('GCPS saved as csv and dat')
+                self.ui.statusbar.showMessage('GCPS saved as csv')
             except:
                 QMessageBox.warning(self, "Points - Error",
                         "Failed to save: %s" % e)
@@ -946,9 +948,9 @@ class GetGCPMainWindow(QMainWindow):
     def releaseWheel(self, ev): 
         if ev.button() == Qt.MidButton :
             self.ui.graphicsView.setDragMode(QGraphicsView.NoDrag)
-        else :
+        else : 
             return
-    
+
     def newPictureGCP(self, ev):
         # mouse event when click on the picture with the GCP tool
         self.ui.graphicsView.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
@@ -959,7 +961,7 @@ class GetGCPMainWindow(QMainWindow):
             height = (ev.scenePos().y()*self.ui.graphicsView.size().height())/self.sizePicture[1]
             self.ui.graphicsView.setDragMode(QGraphicsView.ScrollHandDrag)
             pos = QPointF(width, height)
-            fake = QMouseEvent(QEvent.MouseButtonPress, pos , Qt.LeftButton, Qt.LeftButton,  ev.modifiers())
+            fake = QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton, Qt.LeftButton,  ev.modifiers())
             self.ui.graphicsView.mousePressEvent(fake)
          
         elif self.ZoomInButton.isChecked():

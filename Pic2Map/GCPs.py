@@ -247,6 +247,8 @@ class GCPTableModel(QAbstractTableModel):
     def save(self, filename):
         
         self.filename = filename##########
+
+        """
         exception = None
         fh = None
         try:
@@ -277,10 +279,10 @@ class GCPTableModel(QAbstractTableModel):
                 fh.close()
             if exception is not None:
                 raise exception
-                
+        """        
         #Save as CSV
         ############
-        filename = filename.replace('.dat','.csv')
+        filename = filename
         if filename.find('.csv')==-1:
             filename = filename+'.csv'
             

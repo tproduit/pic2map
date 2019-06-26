@@ -98,7 +98,9 @@ class Pic2Map(object):
         # The data are all given at the beginning
         self.picture_name = self.ini.ui.lineEdit.text()
         self.DEM_name = self.ini.ui.lineEditDEM.text()
-        self.useOrtho = self.ini.ui.checkBox.isChecked()
+        
+        self.useOrtho = False
+        
         self.pathToData = self.ini.currentPath
         self.activeLayer = self.ini.activeLayer
 
@@ -118,6 +120,7 @@ class Pic2Map(object):
             QMessageBox.warning(QWidget(), "I/O - Error","Unable to load DEM. \nDEM must be in geotiff format.\nIf you use the test data set, copy it outside the plugin folder." )
             return
         #see if orthoimage is used and load it in case it's used
+        """
         if self.useOrtho:
             #get name entered
             self.ortho_name = self.ini.ui.lineEdit_2.text()
@@ -137,9 +140,9 @@ class Pic2Map(object):
                 return
             
         #see if orthoimage is not used and initialize
-        else:
-            self.ortho_name = None
-            self.ortho_box = None
+        else:"""
+        self.ortho_name = None
+        self.ortho_box = None
             
         result = self.load_dem()
         #result is 1 if dem is load correctly
@@ -148,15 +151,16 @@ class Pic2Map(object):
             self.load_buffer()
             
             #Check if the GCP approach is chosen
-            if self.ini.ui.radioButton.isChecked():
-                self.runGCPMainWindow(False)
+            #if self.ini.ui.radioButton.isChecked():
+            self.runGCPMainWindow(False)
                 
             #Check if the virtual 3D approach is chosen
+            """
             if self.ini.ui.radioButton_2.isChecked():
                 self.virtual3DMainWindow = Virtual3DMainWindow(self.buffers,self.picture_name, self.crs, self.pathToData)
                 self.virtual3DMainWindow.show()
                 self.virtual3DMainWindow.ui.goToMonoplotterButton.clicked.connect(self.goToMonoplotter)
-                self.virtual3DMainWindow.ui.GoToGCP.clicked.connect(self.runGCPMainWindowFromVirtual3D)
+                self.virtual3DMainWindow.ui.GoToGCP.clicked.connect(self.runGCPMainWindowFromVirtual3D)"""
 
     
   

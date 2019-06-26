@@ -32,8 +32,8 @@ class Initialization_dialog(QtWidgets.QDialog):
         self.iface = iface
         self.ui.lineEdit.setText("")
         self.ui.lineEditDEM.setText("")
-        self.ui.checkBox.setChecked(False)
-        self.ui.lineEdit_2.setText("") 
+        #self.ui.checkBox.setChecked(False)
+        #self.ui.lineEdit_2.setText("") 
         self.activeLayer = False
         self.filePathSave = os.path.dirname(os.path.abspath(__file__)) + "/config.txt"
              
@@ -45,12 +45,12 @@ class Initialization_dialog(QtWidgets.QDialog):
         self.ui.pushButtonCurrent.clicked.connect(self.getCurrentView)
         
         self.ui.buttonBox.helpRequested.connect(self.helpWindow)
-        self.ui.checkBox.stateChanged[int].connect(self.orthoActivate)
+        #self.ui.checkBox.stateChanged[int].connect(self.orthoActivate)
         
         self.ui.lineEditDEM.dropped.connect(self.dropEvent)
-        self.openOrtho = self.ui.toolButton_2
-        self.openOrtho.clicked.connect(self.showDialogOrtho)
-        self.ui.lineEdit_2.setReadOnly(True)
+        #self.openOrtho = self.ui.toolButton_2
+        #self.openOrtho.clicked.connect(self.showDialogOrtho)
+        #self.ui.lineEdit_2.setReadOnly(True)
         
         try : 
             projectName = QgsProject.instance().fileName()
@@ -77,12 +77,12 @@ class Initialization_dialog(QtWidgets.QDialog):
         fileName = fileURL.split('file:///')[1]
         lineEdit.setText(fileName)
         
-    def orthoActivate(self, state):
+    """def orthoActivate(self, state):
         if state == 2:
             self.openOrtho.setEnabled(True)
         if state == 0:
             self.openOrtho.setEnabled(False)
-            self.ui.lineEdit_2.setText('')
+            self.ui.lineEdit_2.setText('')"""
         
         
     def helpWindow(self):
@@ -97,11 +97,11 @@ class Initialization_dialog(QtWidgets.QDialog):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
     
-    def showDialogOrtho(self):
+    """def showDialogOrtho(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath)[0]
         self.ui.lineEdit_2.setText(fname)
         if fname:
-             self.currentPath = fname.rsplit("/",1)[0]
+             self.currentPath = fname.rsplit("/",1)[0]"""
         
     def showDialog(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file',self.currentPath)[0]
