@@ -35,7 +35,7 @@ class ReportDialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         self.ui = Ui_ReportGCP()
         self.ui.setupUi(self)
-        self.center()
+        #self.center()
         self.pathToData = pathToData
         self.xyzUnProjected = xyzUnProjected
         self.totalPointsOnHill = 0

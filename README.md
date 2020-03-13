@@ -136,9 +136,9 @@ In the last column, you have an indication of the error. It is a measure of the 
 
 * ![toolbar2](images/toolbar2.png)  Delete the selected line in the GCP table
 
-* ![toolbar3](images/toolbar3.png)  Save the GCP table
+* ![toolbar4](images/toolbar4.png)  Save the GCP table
 
-* ![toolbar4](images/toolbar4.png)  Load a GCP table
+* ![toolbar3](images/toolbar3.png)  Load a GCP table
 
 * ![toolbar13](images/toolbar13.png)  Remove the reprojected GCPs after a pose estimation
 
@@ -155,9 +155,9 @@ In the last column, you have an indication of the error. It is a measure of the 
 
 * ![toolbar14](images/toolbar14.png)  Show information contain in EXIF
 
-* ![toolbar16](images/toolbar16.png)  Save current pose estimation in KML file
+* ![toolbar15](images/toolbar15.png)  Save current pose estimation in KML file
 
-* ![toolbar15](images/toolbar15.png)  Load a pose estimation from KML file
+* ![toolbar16](images/toolbar16.png)  Load a pose estimation from KML file
 
 Information about the motion in 3D viewer:
 

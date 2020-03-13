@@ -21,7 +21,7 @@ class icons_dialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         self.uiIcons = Ui_iconsDialog()
         self.uiIcons.setupUi(self,iconSet)
-        self.center()
+        #self.center()
 
         self.uiIcons.colorMButton.clicked.connect(partial(self.showColor, self.uiIcons.colorMButton))
         self.uiIcons.colorCButton.clicked.connect(partial(self.showColor, self.uiIcons.colorCButton))

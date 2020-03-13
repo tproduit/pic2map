@@ -41,7 +41,7 @@ class Pose_dialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         self.uiPose = Ui_Pose()
         self.uiPose.setupUi(self)
-        self.center()
+        #self.center()
         self.done = False
         self.sizePicture = sizePicture
         self.model = model

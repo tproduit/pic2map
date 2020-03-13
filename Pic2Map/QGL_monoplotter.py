@@ -66,6 +66,7 @@ class QGLMonoplotter(QGLWidget):
         self.colorPolygon = []
         self.setMouseTracking(True)
         self.drawPurpleCross = False
+        self.color = (1,1,1)
         
     def purpleCross(self,x,y,z):
         if isinstance(y,(float,int)):
@@ -316,7 +317,8 @@ class QGLMonoplotter(QGLWidget):
          glColorMaterial(GL_FRONT, GL_DIFFUSE)
          glEnable(GL_COLOR_MATERIAL)
          glShadeModel( GL_SMOOTH )
-         glColor(1,0,0,self.transparency/float(100))
+         #Fonctionne ici pour le changement de couleur
+         glColor(self.color[0],self.color[1],self.color[2],self.transparency/float(100))
 
          glEnable( GL_LIGHTING )
          glMatrixMode(GL_MODELVIEW)

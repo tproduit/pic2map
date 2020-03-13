@@ -114,9 +114,9 @@ class drappingMain(QtWidgets.QMainWindow):
                 ortho = orthoClass(self.Xmat, self.Ymat, minX, maxX, minY, maxY, meterPerPixel, image, self.crs)#20150823
             elif (maxX<minX) and (maxY<minY):
                 ortho = orthoClass(self.Xmat, self.Ymat, maxX, minX, maxY, minY, meterPerPixel, image, self.crs)#20150823
-            elif (maxX<minX):
+            elif (maxX<=minX):
                 ortho = orthoClass(self.Xmat, self.Ymat, maxX, minX, minY, maxY, meterPerPixel, image, self.crs)#20150823
-            elif (maxY<minY):
+            elif (maxY<=minY):
                 ortho = orthoClass(self.Xmat, self.Ymat, minX, maxX, maxY, minY, meterPerPixel, image, self.crs)
                 
             ortho.computeOrtho(self)

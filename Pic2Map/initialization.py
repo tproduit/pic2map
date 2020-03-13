@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from .ui_disp_ini import Ui_Dialog
 import webbrowser
-import os
+import os, tempfile
 from osgeo import gdal
 
 class Initialization_dialog(QtWidgets.QDialog):
@@ -72,10 +72,15 @@ class Initialization_dialog(QtWidgets.QDialog):
         event.accept()
         
     def dropEvent(self, event):
-        lineEdit =  self.childAt(event.pos().x(),event.pos().y());
-        fileURL = event.mimeData().urls()[0].toString()
-        fileName = fileURL.split('file:///')[1]
-        lineEdit.setText(fileName)
+        lineEdit =  self.childAt(event.pos().x(),event.pos().y())
+        
+        if lineEdit.metaObject().className() == "dropedit" :
+            fileURL = event.mimeData().urls()[0].toString()
+            try :
+                fileName = fileURL.split('file:///')[1]
+            except :
+                fileName = fileURL.split('file:')[1]
+            lineEdit.setText(fileName)
         
     """def orthoActivate(self, state):
         if state == 2:
@@ -145,8 +150,8 @@ class Initialization_dialog(QtWidgets.QDialog):
         else:    
             fname = self.iface.activeLayer().dataProvider().dataSourceUri()
             self.currentPath = fname.rsplit("/",1)[0]
-            
-            outName = self.currentPath + '/' + (fname.rsplit("/",1)[1]).split(".")[0] + "_CropToView.tif"      
+            path = tempfile.gettempdir().replace("\\","/")
+            outName =  path + '/' + (fname.rsplit("/",1)[1]).split(".")[0] + "_CropToView.vrt"      
             f = open(self.filePathSave, "w+")
             f.write(self.currentPath)
             f.close()

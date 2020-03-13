@@ -62,7 +62,7 @@ class Ui_Monoplotter(object):
         self.verticalLayout.addWidget(self.label)
         self.spinBox = QtWidgets.QDoubleSpinBox(self.dockWidgetContents)
         self.spinBox.setObjectName("spinBox")
-        self.spinBox.setMaximum (2000)
+        self.spinBox.setMaximum (4096)
         self.spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.verticalLayout.addWidget(self.spinBox)
         
@@ -130,12 +130,37 @@ class Ui_Monoplotter(object):
         
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
+        
+        self.groupBoxColor = QtWidgets.QGroupBox(self.dockWidgetContents)
+        self.groupBoxColor.setGeometry(QtCore.QRect(20, 550, 161, 51))
+        self.groupBoxColor.setObjectName("groupBoxColor")
+        self.widgetWhite = QtWidgets.QWidget(self.groupBoxColor)
+        self.widgetWhite.setGeometry(QtCore.QRect(10, 25, 21, 21))
+        self.widgetWhite.setStyleSheet("background-color : rgba(255, 255, 255, 100);")
+        self.widgetWhite.setObjectName("widgetWhite")
+        self.widgetRed = QtWidgets.QWidget(self.groupBoxColor)
+        self.widgetRed.setGeometry(QtCore.QRect(40, 25, 21, 21))
+        self.widgetRed.setStyleSheet("background-color : rgba(255, 0, 0, 255);")
+        self.widgetRed.setObjectName("widgetRed")
+        self.widgetYellow = QtWidgets.QWidget(self.groupBoxColor)
+        self.widgetYellow.setGeometry(QtCore.QRect(70, 25, 21, 21))
+        self.widgetYellow.setStyleSheet("background-color : rgba(255, 255, 0, 255);")
+        self.widgetYellow.setObjectName("widgetYellow")
+        self.widgetGreen = QtWidgets.QWidget(self.groupBoxColor)
+        self.widgetGreen.setGeometry(QtCore.QRect(100, 25, 21, 21))
+        self.widgetGreen.setStyleSheet("background-color: rgba(0, 255, 0, 255);")
+        self.widgetGreen.setObjectName("widgetGreen")
+        self.widgetCyan = QtWidgets.QWidget(self.groupBoxColor)
+        self.widgetCyan.setGeometry(QtCore.QRect(130, 25, 21, 21))
+        self.widgetCyan.setStyleSheet("background-color : rgba(0, 255, 255, 255);")
+        self.widgetCyan.setObjectName("widgetCyan")
+        
         if not useOrthoImage:
             self.label_2 = QtWidgets.QLabel(self.dockWidgetContents)
             self.label_2.setObjectName("label_2")
             self.verticalLayout.addWidget(self.label_2)
             self.horizontalSlider = QtWidgets.QSlider(self.dockWidgetContents)
-            self.horizontalSlider.setMaximum(2)
+            self.horizontalSlider.setMaximum(5)
             self.horizontalSlider.setSingleStep(1)
             self.horizontalSlider.setPageStep(1)
             self.horizontalSlider.setValue(0)
@@ -145,6 +170,9 @@ class Ui_Monoplotter(object):
             self.verticalLayout.addWidget(self.horizontalSlider)
             
 
+        
+        
+        
         self.dockWidget.setWidget(self.dockWidgetContents)
         Monoplotter.addDockWidget(QtCore.Qt.DockWidgetArea(2), self.dockWidget)
         
@@ -170,6 +198,7 @@ class Ui_Monoplotter(object):
         
         self.footprint.setText(_translate("Monoplotter", "Compute footprint", None))
         self.retour.setText(_translate("Monoplotter", "Back to GCPWindow", None))
+        self.groupBoxColor.setTitle(_translate("Monoplotter", "DEM Color", None))
         
         if not useOrthoImage:
             self.label_2.setText(_translate("Monoplotter", "DEM transparency", None))

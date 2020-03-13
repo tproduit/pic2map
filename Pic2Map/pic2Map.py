@@ -89,6 +89,7 @@ class Pic2Map(object):
         # the ortho-image if used
         # the approach chosen for georeferencing
         self.ini = Initialization_dialog(self.iface)
+        self.ini.setWindowFlag(Qt.WindowStaysOnTopHint)
         #self.ini.setWindowModality(Qt.ApplicationModal)
         self.ini.ui.buttonBox.accepted.connect(self.startSequence)
         self.ini.show()
@@ -116,7 +117,7 @@ class Pic2Map(object):
         except IOError:
             QMessageBox.warning(QWidget(), "I/O - Error","Failed to initialize picture or DEM" )
             return
-        if self.DEM_name.split('.')[1] != 'tiff' and self.DEM_name.split('.')[1] != 'tif':
+        if self.DEM_name.split('.')[-1] != 'tiff' and self.DEM_name.split('.')[-1] != 'tif' and self.DEM_name.split('.')[-1] != 'vrt':
             QMessageBox.warning(QWidget(), "I/O - Error","Unable to load DEM. \nDEM must be in geotiff format.\nIf you use the test data set, copy it outside the plugin folder." )
             return
         #see if orthoimage is used and load it in case it's used
@@ -271,6 +272,7 @@ class Pic2Map(object):
             self.canvas.setMapTool(self.clickTool)
             # create main window
             self.gcpMainWindow = GetGCPMainWindow(self.iface, self.buffers, self.picture_name,self.pathToData,self.isFrameBufferSupported, self.crs)
+            self.gcpMainWindow.setWindowFlag(Qt.WindowStaysOnTopHint)
             # show the Main Window
             self.gcpMainWindow.show()
             # load the picture in the central widget
@@ -315,6 +317,7 @@ class Pic2Map(object):
                 self.iface.addRasterLayer(self.DEM_name)
             self.iface.zoomToActiveLayer()
             self.iface.mapCanvas().setDestinationCrs(self.crs)
+            QgsProject.instance().setCrs(self.crs)
             
             
             if not rlayer2.isValid():

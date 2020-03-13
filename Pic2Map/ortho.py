@@ -213,7 +213,7 @@ class viewOrtho_class(QGLWidget):
             if name == None:
                 imageSaveName = QFileDialog.getSaveFileName(self,"save file dialog" ,"/raster.tif","Images (*.tiff *.png)")[0]
                 if imageSaveName:
-                    format = imageSaveName.split('.')[1]
+                    format = imageSaveName.split('.')[-1]
                     try:
                         if format == 'tiff':
                             #In case the user save the raster as tiff, it get georeferenced (so geotiff)
@@ -389,7 +389,7 @@ class orthoClass(object):
            #     print self.image.shape[2], 'shape2'
            #     self.image = misc.imresize(self.image, (newHeight, newWidth, self.image.shape[2]), mode = 'F')
            # else:
-            self.image = misc.imresize(self.image, (newHeight, newWidth))
+            self.image = np.array(Image.fromarray(self.image).resize((newHeight, newWidth)))
                 
         else:
             newHeight = self.image.shape[0]
@@ -400,11 +400,11 @@ class orthoClass(object):
         imX[imX == 0.] = np.nan
         imY[imY == 0.] = np.nan
     
-        imX = misc.imresize(imX,(newHeight, newWidth), interp = 'bicubic', mode = 'F')
-        imY = misc.imresize(imY,(newHeight, newWidth), interp = 'bicubic', mode = 'F')
+        imX = Image.fromarray(imX).resize((newHeight, newWidth), resample=Image.BICUBIC)
+        imY = Image.fromarray(imY).resize((newHeight, newWidth), resample=Image.BICUBIC)
         
-        self.Xmat = imX
-        self.Ymat = imY
+        self.Xmat = np.array(imX)
+        self.Ymat = np.array(imY)
 
         
     def makeLineSuppress0(self, image = None):
@@ -423,7 +423,6 @@ class orthoClass(object):
         imXLine = np.delete(imXLine, id0)
         imYLine = np.delete(imYLine, id0)
         
-        im = image
         if im is not None:
             
             #Create an array with the image
@@ -476,16 +475,16 @@ class orthoClass(object):
     
         #interpolation of the three bands
         if imLine.shape[0]==3:
-            grid_z0 = np.uint8(interpolate.griddata(imPoints.T, np.squeeze(imLine[0,:]), (grid_x,grid_y), method='nearest'))
-            grid_z1 = np.uint8(interpolate.griddata(imPoints.T, np.squeeze(imLine[1,:]), (grid_x,grid_y), method='nearest'))
-            grid_z2 = np.uint8(interpolate.griddata(imPoints.T, np.squeeze(imLine[2,:]), (grid_x,grid_y), method='nearest'))
+            grid_z0 = np.uint8(interpolate.griddata(imPoints.T, np.squeeze(imLine[0,:]), (grid_x,grid_y), method='cubic'))
+            grid_z1 = np.uint8(interpolate.griddata(imPoints.T, np.squeeze(imLine[1,:]), (grid_x,grid_y), method='cubic'))
+            grid_z2 = np.uint8(interpolate.griddata(imPoints.T, np.squeeze(imLine[2,:]), (grid_x,grid_y), method='cubic'))
     
             #Stack the bands
             grid = np.dstack([grid_z0, grid_z1, grid_z2])
             
         else:
             
-            grid = np.uint8(interpolate.griddata(imPoints.T, np.squeeze(imLine), (grid_x,grid_y), method='linear'))
+            grid = np.uint8(interpolate.griddata(imPoints.T, np.squeeze(imLine), (grid_x,grid_y), method='cubic'))
             
         #plt.imshow(grid)
         #plt.colorbar()

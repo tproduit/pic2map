@@ -97,6 +97,12 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         self.ui.spinBox.setValue(size[1])
         self.ui.spinBox.editingFinished.connect(self.resizeMonoplotter)
         
+        self.ui.widgetCyan.mousePressEvent = self.mouseColorDEM
+        self.ui.widgetGreen.mousePressEvent = self.mouseColorDEM
+        self.ui.widgetRed.mousePressEvent = self.mouseColorDEM
+        self.ui.widgetWhite.mousePressEvent = self.mouseColorDEM
+        self.ui.widgetYellow.mousePressEvent = self.mouseColorDEM
+
         #Connect the orthorectification button with its function
         self.ui.pushButton.clicked.connect(self.getOrtho)
         
@@ -124,6 +130,31 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         self.ui.measure3D.toggled.connect(self.startMeasure3D)
         self.isMeasuring3D = False
         
+    def mouseColorDEM(self, ev):
+        self.ui.widgetWhite.setStyleSheet("background-color : rgba(255, 255, 255, 255);")
+        self.ui.widgetRed.setStyleSheet("background-color : rgba(255, 0, 0, 255);")
+        self.ui.widgetYellow.setStyleSheet("background-color : rgba(255, 255, 0, 255);")
+        self.ui.widgetGreen.setStyleSheet("background-color: rgba(0, 255, 0, 255);")
+        self.ui.widgetCyan.setStyleSheet("background-color : rgba(0, 255, 255, 255);")
+        
+        if ev.windowPos().x() < 51 :
+            self.qgl_window.color = (1,1,1)
+            self.ui.widgetWhite.setStyleSheet("background-color : rgba(255, 255, 255, 100);")
+        elif ev.windowPos().x() < 81 :
+            self.qgl_window.color = (1,0,0)
+            self.ui.widgetRed.setStyleSheet("background-color : rgba(255, 0, 0, 100);")
+        elif ev.windowPos().x() < 111 :
+            self.qgl_window.color = (1,1,0)
+            self.ui.widgetYellow.setStyleSheet("background-color : rgba(255, 255, 0, 100);")
+        elif ev.windowPos().x() < 141 :
+            self.qgl_window.color = (0,1,0)
+            self.ui.widgetGreen.setStyleSheet("background-color: rgba(0, 255, 0, 100);")
+        elif ev.windowPos().x() < 171 :
+            self.qgl_window.color = (0,1,1)
+            self.ui.widgetCyan.setStyleSheet("background-color : rgba(0, 255, 255, 100);")
+        
+        self.qgl_window.updateGL()
+    
     def analysis(self):
         
         #If the coordinates are not yet computed
@@ -649,7 +680,7 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
 #            self.ui.activatePolygon.setText('Enable Polygons')
         
     def changeTransparency(self, val):
-        self.qgl_window.transparency = val*50
+        self.qgl_window.transparency = val*20
         self.qgl_window.updateGL()
     
     def closeEvent(self, event):

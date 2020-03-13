@@ -21,7 +21,7 @@ class label_dialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         self.ui = Ui_LabelSetting()
         self.ui.setupUi(self, labelSet)
-        self.center()
+        #self.center()
         self.ui.colorButton.clicked.connect(partial(self.showColor, self.ui.colorButton))
         self.ui.fontButton.clicked.connect(self.showFont)
         

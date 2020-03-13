@@ -401,6 +401,7 @@ class GetGCPMainWindow(QMainWindow):
     def exifInfoDisp(self):
         try:
             exifInfo = ExifInfo(self.picture_name, self.crs)
+            exifInfo.setWindowFlag(Qt.WindowStaysOnTopHint)
             exifInfo.fixFocalSignal.connect(self.fixFocal)
             exifInfo.setWindowModality(Qt.ApplicationModal)
             exifInfo.show()
@@ -449,6 +450,7 @@ class GetGCPMainWindow(QMainWindow):
     def call3DView(self):
         # create an openGL window.
         self.view3D = D3_view(self.pointBuffer, None,  self.roll, self.FOV, 100, self.pos, self.lookat, self.upWorld, self.isFrameBufferSupported)
+        self.view3D.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.view3D.show()
         # emit when left click and Ctrl is pressed
         self.view3D.getGCPIn3DviewSignal.connect(self.getGCPIn3Dview) 
@@ -523,11 +525,12 @@ class GetGCPMainWindow(QMainWindow):
        #  try :
         # get needed inputs for pose estimation
         self.poseDialogue = Pose_dialog(self.model, self.paramPoseView, self.positionFixed, self.sizePicture, self.whoIsChecked, self.pathToData, self.picture_name, self.iface, self.crs)
+        self.poseDialogue.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.poseDialogue.update.connect(self.updatePose)
         self.poseDialogue.uiPose.buttonBox.accepted.connect(self.acceptPose)
         self.poseDialogue.uiPose.buttonBox.rejected.connect(self.cancelPose)
         self.poseDialogue.show()
-        result = self.poseDialogue.exec_()
+        #result = self.poseDialogue.exec_()
         
     def updatePose(self):
         try:
@@ -695,6 +698,7 @@ class GetGCPMainWindow(QMainWindow):
     def iconsView(self):
         # Settings of the icons
         self.iconDia = icons_dialog(self.iconSet)
+        self.iconDia.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.iconDia.show()
         result = self.iconDia.exec_()
         if result == 1:
@@ -761,12 +765,17 @@ class GetGCPMainWindow(QMainWindow):
         if factor > 1  and self.countZoom < 25 and zoomOnGCP == False :
             self.countZoom += 1
             self.ui.graphicsView.scale(ZoomInFactor, ZoomInFactor)
+            self.iconSet.SM = self.iconSet.SM * ZoomOutFactor
+            self.iconSet.WM = self.iconSet.WM * ZoomOutFactor
+
         elif factor < 1 and self.countZoom > -2 and zoomOnGCP == False :
             self.countZoom -= 1
             self.ui.graphicsView.scale(ZoomOutFactor, ZoomOutFactor)
+            self.iconSet.SM = self.iconSet.SM * ZoomInFactor
+            self.iconSet.WM = self.iconSet.WM * ZoomInFactor
         
-        self.iconSet.SM = int((-2.8148*self.countZoom) + 74.37)
-        self.iconSet.WM = int((-0.6666*self.countZoom) + 18.66)    
+        #self.iconSet.SM = int((-2.8148*self.countZoom) + 74.37)
+        #self.iconSet.WM = int((-0.6666*self.countZoom) + 18.66)    
         self.refreshPictureGCP()
         
 
@@ -840,6 +849,10 @@ class GetGCPMainWindow(QMainWindow):
                 event.accept()
                 if hasattr(self, 'view3D'):
                     self.view3D.close()
+                if hasattr(self, 'poseDialogue'):
+                    self.poseDialogue.close()
+                if hasattr(self, 'iconDia'):
+                    self.iconDia.close()
                 self.removereprojectedCrossections()
                 for ri in self.canvasCross:
                     self.canvas.scene().removeItem(ri)
@@ -856,6 +869,10 @@ class GetGCPMainWindow(QMainWindow):
         else:
             if hasattr(self, 'view3D'):
                 self.view3D.close()
+            if hasattr(self, 'poseDialogue'):
+                self.poseDialogue.close()
+            if hasattr(self, 'iconDia'):
+                self.iconDia.close()
             self.removereprojectedCrossections()
             for ri in self.canvasCross:
                 self.canvas.scene().removeItem(ri)
@@ -957,6 +974,7 @@ class GetGCPMainWindow(QMainWindow):
         self.ui.graphicsView.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
 
         if ev.button() == Qt.MidButton :
+            self.ui.tableView.clearSelection()
             width = (ev.scenePos().x()*self.ui.graphicsView.size().width())/self.sizePicture[0]
             height = (ev.scenePos().y()*self.ui.graphicsView.size().height())/self.sizePicture[1]
             self.ui.graphicsView.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -1147,7 +1165,7 @@ class GetGCPMainWindow(QMainWindow):
        path = self.pathToData + "/pose.kml"
        
        #Get the name of the saved KML file
-       fName = QFileDialog.getSaveFileName(self,"save file dialog" ,path,"Images (*.kml)");[0]
+       fName = QFileDialog.getSaveFileName(self,"save file dialog" ,path,"Images (*.kml)")[0]
        if fName:
         f = open(fName[0], 'w')
         f.write(
