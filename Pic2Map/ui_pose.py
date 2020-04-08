@@ -17,15 +17,16 @@ except AttributeError:
 
 class Ui_Pose(object):
     def setupUi(self, PoseDialog):
+        self.needRefresh = PoseDialog.needRefresh
         PoseDialog.setObjectName(_fromUtf8("PoseDialog"))
         PoseDialog.resize(648, 383)
         self.gridLayout = QtWidgets.QGridLayout(PoseDialog)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.buttonBox = QtWidgets.QDialogButtonBox(PoseDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
-        self.gridLayout.addWidget(self.buttonBox, 2, 4, 1, 1)
+        self.gridLayout.addWidget(self.buttonBox, 3, 4, 1, 1)
         self.frame_2 = QtWidgets.QFrame(PoseDialog)
         self.frame_2.setMinimumSize(QtCore.QSize(0, 318))
         self.frame_2.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -192,9 +193,19 @@ class Ui_Pose(object):
         self.gridLayout_2.addWidget(self.label_8, 6, 0, 1, 1)
    
         self.gridLayout.addWidget(self.frame_2, 1, 1, 1, 4)
+
         self.commandLinkButton = QtWidgets.QCommandLinkButton(PoseDialog)
         self.commandLinkButton.setObjectName(_fromUtf8("commandLinkButton"))
-        self.gridLayout.addWidget(self.commandLinkButton, 2, 1, 1, 1)
+        self.gridLayout.addWidget(self.commandLinkButton, 2, 3, 1, 2)
+
+        self.exifButton = QtWidgets.QPushButton(PoseDialog)
+        self.exifButton.setObjectName(_fromUtf8("exifButton"))
+        self.gridLayout.addWidget(self.exifButton, 2, 2, 1, 1)
+
+        self.importParamButton = QtWidgets.QPushButton(PoseDialog)
+        self.importParamButton.setObjectName(_fromUtf8("importParamButton"))
+        self.gridLayout.addWidget(self.importParamButton, 2, 1, 1, 1)
+
         self.XPosFree.setChecked(True)
         self.YPosFree.setChecked(True)
         self.ZPosFree.setChecked(True)
@@ -205,11 +216,12 @@ class Ui_Pose(object):
         
         self.reportButton = QtWidgets.QPushButton(PoseDialog)
         self.reportButton.setObjectName(_fromUtf8("reportButton"))
-        self.gridLayout.addWidget(self.reportButton, 2, 2, 1, 1)
+        self.reportButton.setEnabled(False)
+        self.gridLayout.addWidget(self.reportButton, 3, 2, 1, 1)
         
         self.cameraPositionButton = QtWidgets.QPushButton(PoseDialog)
         self.cameraPositionButton.setObjectName(_fromUtf8("cameraPositionButton"))
-        self.gridLayout.addWidget(self.cameraPositionButton, 2, 3, 1, 1)
+        self.gridLayout.addWidget(self.cameraPositionButton, 3, 1, 1, 1)
         self.cameraPositionButton.setEnabled(False)
 
         self.retranslateUi(PoseDialog)
@@ -221,114 +233,144 @@ class Ui_Pose(object):
         self.XPosFixed.toggled.connect(self.XPosFixedclicked)
         self.XPosFree.toggled.connect(self.XPosFreeclicked)
         self.XPosIni.toggled.connect(self.XPosIniclicked)
+        self.XPosLine.textEdited.connect(self.lineEditEdited)
         
         self.YPosLine.setReadOnly(True)
         self.YPosFixed.toggled.connect(self.YPosFixedclicked)
         self.YPosFree.toggled.connect(self.YPosFreeclicked)
         self.YPosIni.toggled.connect(self.YPosIniclicked)
+        self.YPosLine.textEdited.connect(self.lineEditEdited)
         
         self.ZPosLine.setReadOnly(True)
         self.ZPosFixed.toggled.connect(self.ZPosFixedclicked)
         self.ZPosFree.toggled.connect(self.ZPosFreeclicked)
         self.ZPosIni.toggled.connect(self.ZPosIniclicked)
+        self.ZPosLine.textEdited.connect(self.lineEditEdited)
         
         self.headingLine.setReadOnly(True)
         self.headingFixed.toggled.connect(self.headingFixedclicked)
         self.headingFree.toggled.connect(self.headingFreeclicked)
         self.headingIni.toggled.connect(self.headingIniclicked)
+        self.headingLine.textEdited.connect(self.lineEditEdited)
         
         self.tiltLine.setReadOnly(True)
         self.tiltFixed.toggled.connect(self.tiltFixedclicked)
         self.tiltFree.toggled.connect(self.tiltFreeclicked)
         self.tiltIni.toggled.connect(self.tiltIniclicked)
+        self.tiltLine.textEdited.connect(self.lineEditEdited)
         
         self.swingLine.setReadOnly(True)
         self.swingFixed.toggled.connect(self.swingFixedclicked)
         self.swingFree.toggled.connect(self.swingFreeclicked)
         self.swingIni.toggled.connect(self.swingIniclicked)
+        self.swingLine.textEdited.connect(self.lineEditEdited)
         
         self.focalLine.setReadOnly(True)
         self.focalFixed.toggled.connect(self.focalFixedclicked)
         self.focalFree.toggled.connect(self.focalFreeclicked)
         self.focalIni.toggled.connect(self.focalIniclicked)
+        self.focalLine.textEdited.connect(self.lineEditEdited)
 
-
+    def lineEditEdited(self):
+        self.needRefresh.emit() 
+    
     def focalFixedclicked(self):
         if self.focalFixed.isChecked():
-            self.focalLine.setReadOnly(False) 
+            self.focalLine.setReadOnly(False)
+            self.needRefresh.emit()  
     def focalFreeclicked(self):
         if self.focalFree.isChecked():
-            self.focalLine.setText('')
+            #self.focalLine.setText('')
             self.focalLine.setReadOnly(True)
+            self.needRefresh.emit()
     def focalIniclicked(self):
         if self.focalIni.isChecked():
             self.focalLine.setReadOnly(False)
+            self.needRefresh.emit()
             
     def swingFixedclicked(self):
         if self.swingFixed.isChecked():
             self.swingLine.setReadOnly(False) 
+            self.needRefresh.emit()
     def swingFreeclicked(self):
         if self.swingFree.isChecked():
-            self.swingLine.setText('')
+            #self.swingLine.setText('')
             self.swingLine.setReadOnly(True)
+            self.needRefresh.emit()
     def swingIniclicked(self):
         if self.swingIni.isChecked():
             self.swingLine.setReadOnly(False)
+            self.needRefresh.emit()
             
     def tiltFixedclicked(self):
         if self.tiltFixed.isChecked():
-            self.tiltLine.setReadOnly(False) 
+            self.tiltLine.setReadOnly(False)
+            self.needRefresh.emit() 
     def tiltFreeclicked(self):
         if self.tiltFree.isChecked():
-            self.tiltLine.setText('')
+            #self.tiltLine.setText('')
             self.tiltLine.setReadOnly(True)
+            self.needRefresh.emit()
     def tiltIniclicked(self):
         if self.tiltIni.isChecked():
             self.tiltLine.setReadOnly(False)
+            self.needRefresh.emit()
             
     def headingFixedclicked(self):
         if self.headingFixed.isChecked():
-            self.headingLine.setReadOnly(False) 
+            self.headingLine.setReadOnly(False)
+            self.needRefresh.emit() 
     def headingFreeclicked(self):
         if self.headingFree.isChecked():
-            self.headingLine.setText('')
+            #self.headingLine.setText('')
             self.headingLine.setReadOnly(True)
+            self.needRefresh.emit()
     def headingIniclicked(self):
         if self.headingIni.isChecked():
             self.headingLine.setReadOnly(False)
+            self.needRefresh.emit()
             
     def ZPosFixedclicked(self):
         if self.ZPosFixed.isChecked():
-            self.ZPosLine.setReadOnly(False) 
+            self.ZPosLine.setReadOnly(False)
+            self.needRefresh.emit() 
     def ZPosFreeclicked(self):
         if self.ZPosFree.isChecked():
-            self.ZPosLine.setText('')
+            #self.ZPosLine.setText('')
             self.ZPosLine.setReadOnly(True)
+            self.needRefresh.emit()
     def ZPosIniclicked(self):
         if self.ZPosIni.isChecked():
             self.ZPosLine.setReadOnly(False)
+            self.needRefresh.emit()
             
     def YPosFixedclicked(self):
         if self.YPosFixed.isChecked():
-            self.YPosLine.setReadOnly(False) 
+            self.YPosLine.setReadOnly(False)
+            self.needRefresh.emit() 
     def YPosFreeclicked(self):
         if self.YPosFree.isChecked():
-            self.YPosLine.setText('')
+            #self.YPosLine.setText('')
             self.YPosLine.setReadOnly(True)
+            self.needRefresh.emit()
     def YPosIniclicked(self):
         if self.YPosIni.isChecked():
             self.YPosLine.setReadOnly(False)
+            self.needRefresh.emit()
             
     def XPosFixedclicked(self):
         if self.XPosFixed.isChecked():
             self.XPosLine.setReadOnly(False)
+            self.needRefresh.emit()
     def XPosFreeclicked(self):
         if self.XPosFree.isChecked():
-            self.XPosLine.setText('')
+            #self.XPosLine.setText('')
             self.XPosLine.setReadOnly(True)
+            self.needRefresh.emit()
     def XPosIniclicked(self):
         if self.XPosIni.isChecked():
             self.XPosLine.setReadOnly(False)
+            self.needRefresh.emit()
             
             
     def retranslateUi(self, PoseDialog):
@@ -372,7 +414,10 @@ class Ui_Pose(object):
         self.reportButton.setText(_translate("PoseDialog", "Report on GCPs", None))
         self.cameraPositionButton.setText(_translate("PoseDialog" , "Export camera position", None))
 
-        self.commandLinkButton.setText(_translate("PoseDialog", "Pose Estimation", None))
+        self.exifButton.setText(_translate("PoseDialog", "Show EXIF", None))
+        self.importParamButton.setText(_translate("PoseDialog", "Import camera position", None))
+
+        self.commandLinkButton.setText(_translate("PoseDialog", "Update Pose Estimation", None))
 
 
 if __name__ == "__main__":

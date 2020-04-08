@@ -28,7 +28,7 @@ class Initialization_dialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        self.center()
+        #self.center()
         self.iface = iface
         self.ui.lineEdit.setText("")
         self.ui.lineEditDEM.setText("")

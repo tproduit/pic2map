@@ -33,6 +33,9 @@ class ReportDialog(QtWidgets.QDialog):
     #When the Pose dialog window is closed, the errors 
     def __init__(self, model, Qxx, paramBool, paramList, pathToData, xyzUnProjected):
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlag(Qt.WindowStaysOnTopHint)
+        self.setWindowModality(Qt.ApplicationModal)
+        self.inconsistent = False
         self.ui = Ui_ReportGCP()
         self.ui.setupUi(self)
         #self.center()
@@ -98,6 +101,7 @@ class ReportDialog(QtWidgets.QDialog):
         else: 
             QMessageBox.warning(self, "Reprojection - Warning",
                     "inconsistent pose, consider to provide apriori values")
+            self.inconsistent = True
             
     def center(self):
         qr = self.frameGeometry()

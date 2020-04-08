@@ -27,15 +27,21 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from .ui_pose import Ui_Pose
 from copy import copy
+from PIL import Image
+import piexif
 from numpy import any, zeros, array, sin, cos, dot, linalg, pi, asarray, mean, shape, sqrt, flipud, std, concatenate, ones, arccos, arcsin, arctan,arctan2, size, abs, matrix, diag, nonzero
 from .reportDialog import ReportDialog
+from .exifInfo import ExifInfo
 from osgeo import ogr, osr
 from qgis.core import *
 from qgis.gui import *
+from qgis.utils import iface
 import os
 
 class Pose_dialog(QtWidgets.QDialog):
     update = pyqtSignal()
+    needRefresh = pyqtSignal()
+    importUpdate = pyqtSignal()
     def __init__(self, model, paramPosIni, positionFixed, sizePicture, whoIsChecked,pathToData,picture_name, iface,crs):
         #QtGui.QDialog.__init__(self)
         QtWidgets.QDialog.__init__(self)
@@ -55,21 +61,29 @@ class Pose_dialog(QtWidgets.QDialog):
                 
         self.uiPose.commandLinkButton.clicked.connect(self.estimatePose)
         self.uiPose.reportButton.clicked.connect(self.showReportOnGCP)
+        self.uiPose.importParamButton.clicked.connect(self.importPositionCamera)
         self.uiPose.cameraPositionButton.clicked.connect(self.savePositionCamera)
+        self.uiPose.exifButton.clicked.connect(self.exifInfoDisp)
+        self.uiPose.needRefresh.connect(self.refreshButton)
+        self.buttonColor = "R"
+        self.actionOnButton("C", self.buttonColor)
         
         #Set previous estimated value to text boxes
         indice = 0
+        self.poseLineEdit = []
         for line in self.findChildren(QtWidgets.QLineEdit):
                 value = self.paramPosIni[indice]
                 if indice == 0:
                     value *= -1
-                if indice > 2 and indice < 6:
-                    value *= old_div(180,pi)
+                #if indice > 2 and indice < 6:
+                #    value *= old_div(180,pi)
                 if indice == 7:
                     value -= old_div(self.sizePicture[0],2)
                 if indice == 8:
                     value -= old_div(self.sizePicture[1],2)
-                line.setText(str(round(value,3)))
+                text = str(round(value,3))
+                line.setText(text)
+                self.poseLineEdit.append(text)
                 indice +=1
         
         indice = 0
@@ -88,13 +102,87 @@ class Pose_dialog(QtWidgets.QDialog):
         
     def showReportOnGCP(self):
         if hasattr(self, 'report'):
+            self.report.setWindowFlag(Qt.WindowStaysOnTopHint)
             self.report.setWindowModality(Qt.ApplicationModal)
             self.report.show()
             result = self.report.exec_()
         else:
             QMessageBox.warning(self, "Estimation - Error",
                     "There is currently no estimation of position done with GCPs")
+
+    def exifInfoDisp(self):
+        try:
+            self.exifInfo = ExifInfo(self.picture_name, self.crs)
+            if self.exifInfo.transformCoord : 
+                self.exifInfo.ui_exif_info.importXYButton.setEnabled(True)
+                self.exifInfo.ui_exif_info.importXYButton.pressed.connect(self.importXYButtonPress)
+            if self.buttonColor == "G" :
+                self.exifInfo.ui_exif_info.saveXYButton.setEnabled(True)
+                self.exifInfo.ui_exif_info.saveXYButton.pressed.connect(self.saveXYButtonPress)
+            self.exifInfo.setWindowFlag(Qt.WindowStaysOnTopHint)
+            self.exifInfo.fixFocalSignal.connect(self.fixFocal)
+            self.exifInfo.setWindowModality(Qt.ApplicationModal)
+            self.exifInfo.show()
+        except:
+            QMessageBox.warning(self, "Read - Error","Failed to load EXIF information.\nPicture may not have meta-data" )
         
+    def importXYButtonPress(self):
+        self.uiPose.XPosLine.setText(str(round(self.exifInfo.transformCoord[0][0],3)))
+        self.uiPose.XPosIni.setChecked(True)
+        self.uiPose.YPosLine.setText(str(round(self.exifInfo.transformCoord[0][1],3)))
+        self.uiPose.YPosIni.setChecked(True)
+        self.uiPose.ZPosLine.setText(str(round(self.exifInfo.transformCoord[1],3)))
+        self.uiPose.ZPosIni.setChecked(True)
+        self.refreshButton()
+    
+    def saveXYButtonPress(self):
+
+        img = Image.open(self.picture_name)
+        exifInfo = piexif.load(img.info['exif'])
+
+        crsS = "EPSG:" + str(self.crs.postgisSrid())
+        crsSource = QgsCoordinateReferenceSystem(crsS)
+        crsTarget = QgsCoordinateReferenceSystem("EPSG:4326")
+        xform = QgsCoordinateTransform(crsSource, crsTarget, QgsProject.instance())
+        LocalPos = xform.transform(QgsPointXY(-self.result[0],self.result[1]))
+        intLong = int(LocalPos[0])
+        if intLong > 0 :
+            refLong = 'E'
+        else :
+            refLong = 'W'
+        
+        intLat = int(LocalPos[1])
+        if intLat > 0 :
+            refLat = 'N'
+        else :
+            refLat = 'S'
+        
+        valMult = 10000
+
+        longdec = abs(LocalPos[0] - intLong) * 60 * valMult
+        latdec = abs(LocalPos[1] - intLat) * 60 * valMult
+
+        longitude = ( (abs(intLong), 1), ( int(longdec), valMult ), (0, 1) ) 
+        latitude = ( (intLat, 1), ( int(latdec), valMult ), (0, 1) ) 
+        altitude = (int(self.result[2]), 1)
+        
+        exifInfo['GPS'][piexif.GPSIFD.GPSLatitudeRef] = refLat
+        exifInfo['GPS'][piexif.GPSIFD.GPSLatitude] = latitude
+        exifInfo['GPS'][piexif.GPSIFD.GPSLongitudeRef] = refLong
+        exifInfo['GPS'][piexif.GPSIFD.GPSLongitude] = longitude
+        exifInfo['GPS'][piexif.GPSIFD.GPSAltitude] = altitude
+        exif_bytes = piexif.dump(exifInfo)
+        img.save(self.picture_name, "jpeg", exif=exif_bytes)
+
+        img.close()
+        self.exifInfo.setTextBrowser()
+
+    def fixFocal(self, focalPixel):
+        self.uiPose.focalLine.setText(str(focalPixel))
+        self.uiPose.focalIni.setChecked(True)
+        #self.uiPose.focalIni.toggle()
+        
+    
     def estimatePose(self):
         
         #Function called when the user press "Estimate Pose"
@@ -289,7 +377,7 @@ class Pose_dialog(QtWidgets.QDialog):
                     result[i]=parameter_list[i]
 
             indice = 0
-            
+            self.poseLineEdit = []
             # Set result in the dialog box
             for line in self.findChildren(QtWidgets.QLineEdit):
                 value = result[indice]
@@ -301,7 +389,9 @@ class Pose_dialog(QtWidgets.QDialog):
                     value-=self.sizePicture[0]/2.0
                 if indice == 8:
                     value-=self.sizePicture[1]/2.0
-                line.setText(str(round(value,3)))
+                text = str(round(value,3))
+                line.setText(text)
+                self.poseLineEdit.append(text)
                 indice +=1
             
             #Set the variable for next computation and for openGL pose
@@ -314,19 +404,57 @@ class Pose_dialog(QtWidgets.QDialog):
             self.upWorld = up
             self.pos = result[0:3]
             # The focal, here calculate in pixel, has to be translated in term of vertical field of view for openGL
-            self.FOV = old_div((2*arctan(float(self.sizePicture[1]/2.0)/result[6]))*180,pi) 
+            if result[6] != 0 :
+                self.FOV = old_div((2*arctan(float(self.sizePicture[1]/2.0)/result[6]))*180,pi)
+            else :
+                self.FOV = 0 
             self.roll = arcsin(-sin(result[3])*sin(result[5]))
             
             indice = 0
             for radio in self.findChildren(QtWidgets.QRadioButton):
                 self.whoIsChecked[indice] = radio.isChecked()
                 indice +=1
-        
             # Update projected and reprojected points for drawing
             self.update.emit()
             # Create the report on GCP
             self.reportOnGCPs()
-            self.uiPose.cameraPositionButton.setEnabled(True)
+            if self.report.inconsistent == False :
+                self.actionOnButton("E", True)
+                self.actionOnButton("C", "G")
+
+    def refreshButton(self):
+        if self.buttonColor == "G":
+            self.actionOnButton("C", "Y")
+        elif self.buttonColor == "Y" :
+            radioVal = []
+            lineVal = []
+            for radio in self.findChildren(QtWidgets.QRadioButton):
+                radioVal.append(radio.isChecked())
+            for line in self.findChildren(QtWidgets.QLineEdit):
+                lineVal.append(line.text())
+            if radioVal == self.whoIsChecked and lineVal == self.poseLineEdit :
+                self.actionOnButton("C", "G")
+
+    
+    def actionOnButton(self, action, arg=None):
+        if action == "E" :
+            self.uiPose.cameraPositionButton.setEnabled(arg)
+            self.uiPose.reportButton.setEnabled(arg)
+        
+        elif action == "C" :
+            self.buttonColor = arg
+            if arg == "R": 
+                self.uiPose.cameraPositionButton.setStyleSheet("background-color: rgb(255, 90, 90);")
+                self.uiPose.reportButton.setStyleSheet("background-color: rgb(255, 90, 90);")
+
+            elif arg == "Y" :
+                self.uiPose.cameraPositionButton.setStyleSheet("background-color: rgb(255, 255, 90);")
+                self.uiPose.reportButton.setStyleSheet("background-color: rgb(255, 255, 90);")
+
+            elif arg == "G" :
+                self.uiPose.cameraPositionButton.setStyleSheet("background-color: rgb(90, 255, 90);")
+                self.uiPose.reportButton.setStyleSheet("background-color: rgb(90, 255, 90);")
+
 
     def LS(self,abscissa,observations,PARAM,x_fix,x_ini):
         # The initial parameters are the ones from DLT but where the radio button is set as free
@@ -335,107 +463,109 @@ class Pose_dialog(QtWidgets.QDialog):
             if (PARAM[i]==1) or (PARAM[i]==2):
                 #Free or apriori values
                 x.append(x_ini[i])
-        x = array(x)
+        if x :
 
-        
-        # 2D coordinates are understood as observations
-        observations = array(observations)
-        # 3D coordinates are understood as the abscissas
-        abscissa = array(abscissa)
-        npoints = size(observations[:,1])
-        
-        l_x = size(x)#9-size(nonzero(PARAM==0)[0])#int(sum(PARAM))#Number of free parameters
-        sigmaobservationservation = 1
-        Kl =  zeros(shape=(2*npoints,2*npoints))
-        
-        # A error of "sigmaobservationservation" pixels is a priori set
-        for i in range (npoints):
-            Kl[2*i-1,2*i-1]=sigmaobservationservation**2
-            Kl[2*i,2*i]=sigmaobservationservation**2
-        
-        # The P matrix is a weight matrix, useless if equal to identity (but can be used in some special cases)    
-        P=linalg.pinv(Kl);
-        # A is the Jacobian matrix
-        A = zeros(shape=(2*npoints,l_x))
-        # H is the hessian matrix
-        H = zeros(shape=(l_x,l_x))
-        # b is a transition matrix
-        b = zeros(shape=(l_x))
-        # v contains the residual errors between observations and predictions
-        v = zeros(shape=(2*npoints))
-        # v_test contain the residual errors between observations and predictions after an update of H
-        v_test = zeros(shape=(2*npoints))
-        # x_test is the updated parameters after an update of H
-        x_test = zeros(shape=(l_x))
-        # dx is the update vector of x and x_test
-        dx = array([0.]*l_x)
-        
-        
-        it=-1;            
-        maxit=1000;     
-        # At least one iteration, dx > inc
-        dx[0]=1
-        # Lambda is the weightage parameter in Levenberg-marquart between the gradient and the gauss-newton parts.
-        Lambda = 0.01
-        # increment used for Jacobian and for convergence criterium
-        inc = 0.001
-        while (max(abs(dx))> inc) & (it<maxit):
-            #new iteration, parameters updates are greater than the convergence criterium
-            it=it+1;
-            # For each observations, we compute the derivative with respect to each parameter
-            # We form therefore the Jacobian matrix
-            for i in range(npoints):
-                #ubul and vbul are the prediction with current parameters
-                ubul, vbul = self.dircal(x, abscissa[i,:], x_fix, PARAM)
-                # The difference between the observation and prediction is used for parameters update
-                v[2*i-1]=observations[i,0]-ubul
-                v[2*i]=observations[i,1]-vbul
-                for j in range(l_x):
-                    x_temp = copy(x);
-                    x_temp[j] = x[j]+inc
-                    u2, v2 = self.dircal(x_temp,abscissa[i,:],x_fix,PARAM)
-                    A[2*i-1,j]= old_div((u2-ubul),inc)
-                    A[2*i,j]= old_div((v2-vbul),inc)
-            # The sum of the square of residual (S0) must be as little as possible.        
-            # That's why we speak of "least square"... tadadam !
-            S0 = sum(v**2);
-            H = dot(dot(matrix.transpose(A),P),A);
-            b = dot(dot(matrix.transpose(A),P),v);
-            try:
-                dx = dot(linalg.pinv(H+Lambda*diag(diag(H))),b);
-                x_test = x+dx;
-            except:
-                # The matrix is not always reversal.
-                # In this case, we don't accept the update and go for another iteration 
-                S2 = S0
-            else:
+            x = array(x)
+
+            # 2D coordinates are understood as observations
+            observations = array(observations)
+            # 3D coordinates are understood as the abscissas
+            abscissa = array(abscissa)
+            npoints = size(observations[:,1])
+            
+            l_x = size(x)#9-size(nonzero(PARAM==0)[0])#int(sum(PARAM))#Number of free parameters
+            sigmaobservationservation = 1
+            Kl =  zeros(shape=(2*npoints,2*npoints))
+            
+            # A error of "sigmaobservationservation" pixels is a priori set
+            for i in range (npoints):
+                Kl[2*i-1,2*i-1]=sigmaobservationservation**2
+                Kl[2*i,2*i]=sigmaobservationservation**2
+             
+            # The P matrix is a weight matrix, useless if equal to identity (but can be used in some special cases)    
+            P=linalg.pinv(Kl);
+            # A is the Jacobian matrix
+            A = zeros(shape=(2*npoints,l_x))
+            # H is the hessian matrix
+            H = zeros(shape=(l_x,l_x))
+            # b is a transition matrix
+            b = zeros(shape=(l_x))
+            # v contains the residual errors between observations and predictions
+            v = zeros(shape=(2*npoints))
+            # v_test contain the residual errors between observations and predictions after an update of H
+            v_test = zeros(shape=(2*npoints))
+            # x_test is the updated parameters after an update of H
+            x_test = zeros(shape=(l_x))
+            # dx is the update vector of x and x_test
+            dx = array([0.]*l_x)
+            
+            it=-1;            
+            maxit=1000;     
+            # At least one iteration, dx > inc
+            dx[0]=1
+            # Lambda is the weightage parameter in Levenberg-marquart between the gradient and the gauss-newton parts.
+            Lambda = 0.01
+            # increment used for Jacobian and for convergence criterium
+            inc = 0.001
+            while (max(abs(dx))> inc) & (it<maxit):
+                #new iteration, parameters updates are greater than the convergence criterium
+                it=it+1;
+                # For each observations, we compute the derivative with respect to each parameter
+                # We form therefore the Jacobian matrix
                 for i in range(npoints):
-                    # We check that the update has brought some good stuff in the pocket
-                    # In other words, we check that the sum of square of less than before (better least square!)
-                    utest, vtest = self.dircal(x_test,abscissa[i,:],x_fix,PARAM);
-                    v_test[2*i-1]=observations[i,0]-utest;
-                    v_test[2*i]=observations[i,1]-vtest; 
-                    S2 = sum(v_test**2);
-            # Check if sum of square is less
-            if S2<S0:
-                Lambda = old_div(Lambda,10)
-                x = x + dx
-            else:
-                Lambda = Lambda*10
-        
-        # Covariance matrix of parameters
-        self.Qxx = sqrt(diag(linalg.inv(dot(dot(matrix.transpose(A),P),A))))
+                    #ubul and vbul are the prediction with current parameters
+                    ubul, vbul = self.dircal(x, abscissa[i,:], x_fix, PARAM)
+                    # The difference between the observation and prediction is used for parameters update
+                    v[2*i-1]=observations[i,0]-ubul
+                    v[2*i]=observations[i,1]-vbul
+                    for j in range(l_x):
+                        x_temp = copy(x);
+                        x_temp[j] = x[j]+inc
+                        u2, v2 = self.dircal(x_temp,abscissa[i,:],x_fix,PARAM)
+                        A[2*i-1,j]= old_div((u2-ubul),inc)
+                        A[2*i,j]= old_div((v2-vbul),inc)
+                # The sum of the square of residual (S0) must be as little as possible.             
+                # That's why we speak of "least square"... tadadam !
+                S0 = sum(v**2);
+                H = dot(dot(matrix.transpose(A),P),A);
+                b = dot(dot(matrix.transpose(A),P),v);
+                try:
+                    dx = dot(linalg.pinv(H+Lambda*diag(diag(H))),b);
+                    x_test = x+dx;
+                except:
+                    # The matrix is not always reversal.
+                    # In this case, we don't accept the update and go for another iteration 
+                    S2 = S0
+                else:
+                    for i in range(npoints):
+                        # We check that the update has brought some good stuff in the pocket
+                        # In other words, we check that the sum of square of less than before (better least square!)
+                        utest, vtest = self.dircal(x_test,abscissa[i,:],x_fix,PARAM);
+                        v_test[2*i-1]=observations[i,0]-utest;
+                        v_test[2*i]=observations[i,1]-vtest; 
+                        S2 = sum(v_test**2);
+                # Check if sum of square is less
+                if S2<S0:
+                    Lambda = old_div(Lambda,10)
+                    x = x + dx
+                else:
+                    Lambda = Lambda*10
+            
+            # Covariance matrix of parameters
+            self.Qxx = sqrt(diag(linalg.inv(dot(dot(matrix.transpose(A),P),A))))
+            
+        else :
+            tab = [0.0]*7
+            self.Qxx = array(tab)
         
         p = zeros(shape=(len(PARAM)))
-        m = 0
-        #n = 0
+        m = 0 
         for k in range(len(PARAM)):
             if (PARAM[k]==1) or (PARAM[k]==2):
                 p[k] = x[m]
-                m = m+1
+                m += 1
             else:
                 p[k] = x_fix[k]
-                #n = n+1
                 
         L1p = self.CoeftoMatrixProjection(p)
         
@@ -459,7 +589,6 @@ class Pose_dialog(QtWidgets.QDialog):
         R[2,0] = -sin(azimuth)*sin(tilt)
         R[2,1] = -cos(azimuth)*sin(tilt)
         R[2,2] =  cos(tilt)
-        
         # Get "look at" vector for openGL pose
         ######################################
         
@@ -476,7 +605,6 @@ class Pose_dialog(QtWidgets.QDialog):
         #not_awesome_vector = array([0,0,-focal])
         #almost_awesome_vector = dot(linalg.inv(R),not_awesome_vector.T)
         #awesome_vector = array(almost_awesome_vector)+array([x0,y0,z0])
-        
         
         return x, L1p, lookat, upWorld#awesome_vector
     
@@ -727,6 +855,76 @@ class Pose_dialog(QtWidgets.QDialog):
 
         return ures,vres
 
+    def importPositionCamera(self):
+        
+        fieldName = ["X", "Y", "Z", "tilt", "heading", "swing", "focal"]
+        fieldValue = []
+        allField = True
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, "Load your shapefile ", self.pathToData , "Shapefile (*.shp)")[0]
+        if fname :
+            vLayer = QgsVectorLayer(fname, "", "ogr")
+            for feat in vLayer.getFeatures() :
+                for item in fieldName :
+                    try :
+                        value = feat.attribute(item)
+                        fieldValue.append(value)
+                    except :
+                        fieldValue.append(0)
+                        allField = False
+    
+            indice = 0
+            whoToCheck = []
+            for line in self.findChildren(QtWidgets.QLineEdit):
+                value = fieldValue[indice]
+                text = str(round(value,3))
+                line.setText(text)
+                if value == 0 : 
+                    whoToCheck.extend([True,False,False])
+                else :  
+                    whoToCheck.extend([False,True,False])
+                indice +=1
+        
+            indice = 0
+            for radio in self.findChildren(QtWidgets.QRadioButton):
+                radio.setChecked(whoToCheck[indice])
+                indice +=1
+            
+            if allField :
+
+                tilt = (fieldValue[3]*pi)/180 
+                heading = (fieldValue[4]*pi)/180 
+                swing = (fieldValue[5]*pi)/180 
+
+                R = zeros((3,3))
+                R[0,0] = -cos(heading)*cos(swing)-sin(heading)*cos(tilt)*sin(swing)
+                R[0,1] =  sin(heading)*cos(swing)-cos(heading)*cos(tilt)*sin(swing) 
+                R[0,2] = -sin(tilt)*sin(swing)
+                R[1,0] =  cos(heading)*sin(swing)-sin(heading)*cos(tilt)*cos(swing)
+                R[1,1] = -sin(heading)*sin(swing)-cos(heading)*cos(tilt)*cos(swing) 
+                R[1,2] = -sin(tilt)*cos(swing)
+                R[2,0] = -sin(heading)*sin(tilt)
+                R[2,1] = -cos(heading)*sin(tilt)
+                R[2,2] =  cos(tilt)
+
+                dirCam = array([0,0,-fieldValue[6]])
+                upCam = array([0,-1,0])
+                
+                dirWorld = dot(linalg.inv(R),dirCam.T)
+                lookat_temp = array(dirWorld)+array([-fieldValue[0], fieldValue[1] , fieldValue[2]])
+                upWorld_temp = dot(linalg.inv(R),upCam.T) 
+                
+                self.pos = [-fieldValue[0], fieldValue[2], fieldValue[1]]
+                self.FOV = old_div((2*arctan(float(self.sizePicture[1]/2.0)/fieldValue[6]))*180,pi)
+                self.roll = arcsin(-sin(tilt)*sin(swing))
+                self.lookat = array([lookat_temp[0], lookat_temp[2], lookat_temp[1]])
+                self.upWorld = array([upWorld_temp[0], upWorld_temp[2], upWorld_temp[1]])
+                self.result = [-fieldValue[0], fieldValue[1], fieldValue[2], tilt, heading, swing, fieldValue[6]]
+                self.whoIsChecked = whoToCheck 
+                self.importUpdate.emit()
+            
+            else :
+                self.refreshButton()
+
     def savePositionCamera(self) :
         xPos = -self.result[0]
         yPos = self.result[1]
@@ -784,6 +982,8 @@ class Pose_dialog(QtWidgets.QDialog):
             outLayer.CreateField(headingField)
             swingField = ogr.FieldDefn("swing", ogr.OFTReal)
             outLayer.CreateField(swingField)
+            focalField = ogr.FieldDefn("focal", ogr.OFTReal)
+            outLayer.CreateField(focalField)
             nameField = ogr.FieldDefn("picture", ogr.OFTString)
             outLayer.CreateField(nameField)
             
@@ -798,6 +998,7 @@ class Pose_dialog(QtWidgets.QDialog):
             feature.SetField("tilt",self.result[3])
             feature.SetField("heading",self.result[4])
             feature.SetField("swing",self.result[5])
+            feature.SetField("focal",self.result[6])
             outLayer.CreateFeature(feature)
 
             # Close DataSource

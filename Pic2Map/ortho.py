@@ -104,6 +104,7 @@ class viewOrtho_class(QGLWidget):
                 result = gluUnProject( x, y, z, self.modelview_new, self.projection_new, self.viewport_new)
                 self.boxLeftUp = [result[0],result[2]]
                 self.boxRightDown = [result[0],result[2]]
+                self.initBoxResult = [result[0],result[2]]
         
     def mouseMoveEvent(self,event):
         if(event.buttons() & Qt.LeftButton):
@@ -112,11 +113,31 @@ class viewOrtho_class(QGLWidget):
             z = glReadPixels( x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
             result = gluUnProject( x, y, z, self.modelview_new, self.projection_new, self.viewport_new)
             # Dragging the bounding box can only be done from up-left to right down corner
-            if result[0]<self.boxLeftUp[0] and result[2]<self.boxLeftUp[1] :
+            if result[0]<self.initBoxResult[0] and result[2]<self.initBoxResult[1] :
+                self.boxLeftUp = self.initBoxResult
                 self.boxRightDown = [result[0],result[2]]
-                self.last_pos = event.pos()
                 self.update()
                 self.getBound.emit([self.boxLeftUp,self.boxRightDown])
+
+            elif result[0]<self.initBoxResult[0] and result[2]>self.initBoxResult[1] :
+                self.boxRightDown = [result[0], self.initBoxResult[1]]
+                self.boxLeftUp = [self.initBoxResult[0],result[2]]
+                self.update()
+                self.getBound.emit([self.boxLeftUp,self.boxRightDown])
+            
+            elif result[0]>self.initBoxResult[0] and result[2]<self.initBoxResult[1] :
+                self.boxRightDown = [self.initBoxResult[0],result[2]]
+                self.boxLeftUp = [result[0], self.initBoxResult[1]]
+                self.update()
+                self.getBound.emit([self.boxLeftUp,self.boxRightDown])
+            
+            elif result[0]>self.initBoxResult[0] and result[2]>self.initBoxResult[1] :
+                self.boxRightDown = self.initBoxResult
+                self.boxLeftUp = [result[0],result[2]]
+                self.update()
+                self.getBound.emit([self.boxLeftUp,self.boxRightDown])
+
+            
 
     def paintGL(self):
          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

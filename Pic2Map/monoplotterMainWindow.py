@@ -96,7 +96,8 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         self.ui.saveButton.clicked.connect(self.saveImage)
         self.ui.spinBox.setValue(size[1])
         self.ui.spinBox.editingFinished.connect(self.resizeMonoplotter)
-        
+        self.ui.spinBox.setValue(720)
+        self.resizeMonoplotter()
         self.ui.widgetCyan.mousePressEvent = self.mouseColorDEM
         self.ui.widgetGreen.mousePressEvent = self.mouseColorDEM
         self.ui.widgetRed.mousePressEvent = self.mouseColorDEM

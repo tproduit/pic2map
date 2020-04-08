@@ -38,11 +38,10 @@ from PIL import Image
 from PIL.ImageQt import ImageQt
 from PIL import ImageEnhance
 from .GCPs import *
-from numpy import arctan, arctan2, arcsin, sqrt, pi, cos, sin, array, zeros, dot, linalg, abs, asarray
+from numpy import arctan, arctan2, arcsin, sqrt, pi, cos, sin, array, zeros, dot, linalg, abs, asarray, tan
 from .D3View import D3_view
 # FIXME QtXml is no longer supported.
 from PyQt5 import QtXml
-from .exifInfo import ExifInfo
 import os, time
         
 try:
@@ -74,7 +73,7 @@ class GetGCPMainWindow(QMainWindow):
         self.ui = Ui_disprast()
         self.ui.setupUi(self)
         #center the window in the screen
-        self.center()
+        #self.center()
         
         # zoomFactor is used by the zoom button and wheel events for zooming in and out
         self.zoomFactor = 1
@@ -100,9 +99,7 @@ class GetGCPMainWindow(QMainWindow):
         self.sizePicture = [img.width(), img.height()]
         # iconSet contain setting used for displaying GCP in canvas and in the scene
         self.iconSet = icon_settings(self.sizePicture, self.pointBuffer.res)
-        name = os.path.dirname(os.path.abspath(__file__))
-        url = name + "/icons/toolbar1.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar1.png"
         addGCPButton = QAction(QIcon(url), 'Add GCP to Table', self)
         # toolbarTable contains actions in relation with GCP digitalization
         # toolbarView contains actions in relation with the 3D openGL view
@@ -113,102 +110,82 @@ class GetGCPMainWindow(QMainWindow):
         self.ui.toolbarTable.addAction(addGCPButton)
         addGCPButton.triggered.connect(self.addGCP)
         
-        url = name + "/icons/toolbar2.png"
-        url.replace("\\","/")
-        removeGCPButton = QAction(QIcon(url), 'Remove selected GCP', self)
+        removeGCPButton = QAction(QIcon(":/plugins/Pic2Map/toolbar2.png"), 'Remove selected GCP', self)
         self.ui.toolbarTable.addAction(removeGCPButton)
         removeGCPButton.triggered.connect(self.removeGCP)
         
-        url = name + "/icons/toolbar4.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar4.png"
         saveGCPButton = QAction(QIcon(url), 'Save GCP', self)
         self.ui.toolbarTable.addAction(saveGCPButton)
         saveGCPButton.triggered.connect(self.saveGCP)
 
-        url = name + "/icons/toolbar3.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar3.png"
         loadGCPButton = QAction(QIcon(url), 'Load GCP', self)
         self.ui.toolbarTable.addAction(loadGCPButton)
         loadGCPButton.triggered.connect(self.loadGCP)
         
-        url = name + "/icons/toolbar13.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar13.png"
         removereprojectedCrossectionsButton = QAction(QIcon(url), 'remove GCP reprojectedCrossections', self)
         self.ui.toolbarTable.addAction(removereprojectedCrossectionsButton)
         removereprojectedCrossectionsButton.triggered.connect(self.removereprojectedCrossections)
         
-        url = name + "/icons/toolbar5.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar5.png"
         self.ZoomInButton = QAction(QIcon(url), 'Zoom In', self)
         self.ui.toolbarView.addAction(self.ZoomInButton)
         self.ZoomInButton.setCheckable(True)
         self.ZoomInButton.triggered.connect(self.ZoomIn)
         
-        url = name+ "/icons/toolbar6.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar6.png"
         self.ZoomOutButton = QAction(QIcon(url), 'Zoom Out', self)
         self.ui.toolbarView.addAction(self.ZoomOutButton)
         self.ZoomOutButton.setCheckable(True)
         self.ZoomOutButton.triggered.connect(self.ZoomOut)
         
-        url = name+ "/icons/toolbar7.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar7.png"
         self.PanButton = QAction(QIcon(url), 'Pan', self)
         self.ui.toolbarView.addAction(self.PanButton)
         self.PanButton.setCheckable(True)
         self.PanButton.triggered.connect(self.Pan)
         
-        url = name+ "/icons/toolbar8.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar8.png"
         IconsViewButton = QAction(QIcon(url), 'Symbols Settings', self)
         self.ui.toolbarTable.addAction(IconsViewButton)
         IconsViewButton.triggered.connect(self.iconsView)
         
-        url = name+ "/icons/toolbar9.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar9.png"
         PoseButton = QAction(QIcon(url), 'Pose estimation', self)
         self.ui.toolbarPose.addAction(PoseButton)
         PoseButton.triggered.connect(self.PoseView)
         
-        url = name+ "/icons/toolbar10.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar10.png"
         D3Button = QAction(QIcon(url), '3D-View', self)
         self.ui.toolbarPose.addAction(D3Button)
         D3Button.triggered.connect(self.call3DView)
         
-        url = name+ "/icons/toolbar11.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar11.png"
         self.GoToMonoplotterButton = QAction(QIcon(url), 'Go to Monoplotter', self)
         self.ui.toolbarPose.addAction(self.GoToMonoplotterButton)
         self.GoToMonoplotterButton.setEnabled(False)
     
-        url = name+ "/icons/toolbar14.png"
-        url.replace("\\","/")    
-        self.exifInfoButton = QAction(QIcon(url), 'EXIF Informations', self)
-        self.ui.toolbarPose.addAction(self.exifInfoButton)
-        self.exifInfoButton.triggered.connect(self.exifInfoDisp)
         
-        url = name+ "/icons/toolbar15.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar15.png"
         self.saveAsKMLButton = QAction(QIcon(url), 'Save Pose as KML', self)
         self.ui.toolbarPose.addAction(self.saveAsKMLButton)
         self.saveAsKMLButton.triggered.connect(self.saveAsKML)
         
-        url = name+ "/icons/toolbar16.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar16.png"
         self.loadAsKMLButton = QAction(QIcon(url), 'Load Pose as KML', self)
         self.ui.toolbarPose.addAction(self.loadAsKMLButton)
         self.loadAsKMLButton.triggered.connect(self.loadAsKML)
         
-        url = name+ "/icons/toolbar12.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/toolbar12.png"
         ZoomOnCrossButton = QAction(QIcon(url), 'Zoom on selected GCP', self)
         self.ui.toolbarView.addAction(ZoomOnCrossButton)
         ZoomOnCrossButton.triggered.connect(self.zoomOnCross)
 
         # set a scene in the view
         self.scene = QGraphicsScene()
-        self.ui.graphicsView.setScene(self.scene);
+        self.ui.graphicsView.setScene(self.scene)
         self.middleClick = False
         self.scene.mousePressEvent = self.newPictureGCP
         self.scene.mouseReleaseEvent = self.releaseWheel
@@ -233,7 +210,7 @@ class GetGCPMainWindow(QMainWindow):
         self.FOV = 30
         self.roll = 0
         self.upWorld = asarray([0,1,0])
-        self.paramPoseView  = [0,0,0,0,0,0,sqrt(self.sizePicture[0]**2+self.sizePicture[1]**2),self.sizePicture[0]/2.0,self.sizePicture[1]/2.0]
+        self.paramPoseView  = [0,0,0,0,0,0,0,self.sizePicture[0]/2.0,self.sizePicture[1]/2.0]
         self.positionFixed = False
         # indice for fixed or free parameters for pose estimation
         self.whoIsChecked = [True, False, False]*7
@@ -241,7 +218,7 @@ class GetGCPMainWindow(QMainWindow):
                 
     def saveAsKML(self):
         # Save the pose in KML file. It can be open in googleEarth
-        if self.pos != None:
+        if self.pos :
             pos = self.pos
             roll = self.roll
             FOV = self.FOV
@@ -252,8 +229,9 @@ class GetGCPMainWindow(QMainWindow):
             heading = old_div(arctan2(dx,-dy)*180,pi)
             tilt = old_div(arctan(old_div(-dz,sqrt(dx**2+dy**2)))*180,pi)+90
             
-            crsSource = QgsCoordinateReferenceSystem(self.crs.postgisSrid())
-            crsTarget = QgsCoordinateReferenceSystem(4326)
+            crsT = "EPSG:" + str(self.crs.postgisSrid())
+            crsSource = QgsCoordinateReferenceSystem(crsT)
+            crsTarget = QgsCoordinateReferenceSystem("EPSG:4326")
             xform = QgsCoordinateTransform(crsSource, crsTarget, QgsProject.instance())
             WGSPos = xform.transform(QgsPointXY(-pos[0],pos[2]))
             altitude = pos[1]
@@ -268,11 +246,12 @@ class GetGCPMainWindow(QMainWindow):
             self.writeKML(est, nord, altitude, heading, tilt, roll, leftFOV, rightFOV, topFOV, bottomFOV, near)
             self.ui.statusbar.showMessage('Pose saved in KML file')
         else:
-             QMessageBox.warning(QMainWindow(),"Error","Pose not valid")
+             QMessageBox.warning(self,"Error","Pose not valid")
         
     def loadAsKML(self):
         # Read a KML file created by th plugin or a KML for a picture pose in google Earth
-        path = self.pathToData + "/pose.kml"
+        kmlName = '/' + (self.picture_name.split(".")[0]).split("/")[-1] + '_pose.kml'
+        path = self.pathToData + kmlName
         fName = QFileDialog.getOpenFileName(self, 'Open file',path,("Kml (*.kml)"))[0]
         if not fName:
             return
@@ -311,24 +290,25 @@ class GetGCPMainWindow(QMainWindow):
                     except:
                         Rotation = 0
                 except:
-                     QMessageBox.warning(QMainWindow(),"Error","Could not use xml file. Problem parsing.")
+                     QMessageBox.warning(self,"Error","Could not use xml file. Problem parsing.")
                 else:
                     #The focal has to be centered
                     if leftFov != -1*rightFov or bottomFov != -1*topFov:
-                         QMessageBox.warning(QMainWindow(),"Error","Could not use xml file. Problem of field of view definition.")
+                         QMessageBox.warning(self,"Error","Could not use xml file. Problem of field of view definition.")
                     #Only the absolute elevation is possible. The mode "above the ground" is not supported
                     if altitudeMode != 'absolute' and altitudeMode != 'relativeToSeaFloor':
-                         QMessageBox.warning(QMainWindow(),"Error","Could not use xml file. Problem of altitude definition (1).")
+                         QMessageBox.warning(self,"Error","Could not use xml file. Problem of altitude definition (1).")
                     #The has to be near zero given the construction of the KML. The roll is not given by the Roll, but by Rotation
                     #if Roll > 0.1:
                     #     QMessageBox.warning(QMainWindow(),"Error","Could not use xml file. Problem of roll definition.")
                     #Check if the latitude and longitude are valid
                     if latitude > 91 or latitude < -91 or longitude > 361 :
-                         QMessageBox.warning(QMainWindow(),"Error","Could not use xml file. Problem of coordinates definition.")
+                         QMessageBox.warning(self,"Error","Could not use xml file. Problem of coordinates definition.")
                     
                     # Transform the position coordinates from wgs84 to the DEM coordinate system
-                    crsTarget = QgsCoordinateReferenceSystem(self.crs.postgisSrid())
-                    crsSource = QgsCoordinateReferenceSystem(4326)
+                    crsT = "EPSG:" + str(self.crs.postgisSrid())
+                    crsTarget = QgsCoordinateReferenceSystem(crsT)
+                    crsSource = QgsCoordinateReferenceSystem("EPSG:4326")
                     xform = QgsCoordinateTransform(crsSource, crsTarget, QgsProject.instance())
                     LocalPos = xform.transform(QgsPointXY(longitude,latitude))
                     if altitudeMode == 'relativeToSeaFloor':
@@ -341,11 +321,24 @@ class GetGCPMainWindow(QMainWindow):
                             altitude = altitude + value
                         #except :
                             #QMessageBox.warning(QMainWindow(),"Error","Could not use xml file. Problem of altitude definition (2).")
-                    pos = array([-LocalPos[0], altitude, LocalPos[1]])
+                    pos = [-LocalPos[0], altitude, LocalPos[1]]
                     FOV = 2*topFov
                     heading = Heading/180.0*pi
                     roll = Rotation/180.0*pi
                     tilt = Tilt/180.0*pi
+                    swing = -roll
+
+                    self.paramPoseView[0] = -LocalPos[0]
+                    self.paramPoseView[1] = LocalPos[1]
+                    self.paramPoseView[2] = altitude
+                    self.paramPoseView[3] = Tilt
+                    self.paramPoseView[4] = -Heading
+                    self.paramPoseView[5] = -Rotation*180.0/pi
+                    radFOV = FOV*pi/180
+                    self.paramPoseView[6] = self.sizePicture[1]/(2*tan(radFOV/2))
+                    self.whoIsChecked = [False, True, False]*7
+
+                    
 
                     #try:
                     #    swing = arcsin(sin(roll)/(-sin(tilt)))
@@ -353,7 +346,7 @@ class GetGCPMainWindow(QMainWindow):
                     #    print 'zero div'
                     #    swing = 0
      
-                    swing = -roll
+                    
                     
                     #Create a rotation matrix . the point [0,0,-1] is rotated for the openGL "lookat" function.
                     R = zeros((3,3))
@@ -366,7 +359,6 @@ class GetGCPMainWindow(QMainWindow):
                     R[2,0] = -sin(heading)*sin(tilt)
                     R[2,1] = -cos(heading)*sin(tilt)
                     R[2,2] =  cos(tilt)
-                    
                     # Get "look at" vector for openGL pose
                     ######################################
                     
@@ -397,20 +389,7 @@ class GetGCPMainWindow(QMainWindow):
                     self.ui.statusbar.showMessage('Pose loaded from KML file.')
                     self.GoToMonoplotterButton.setEnabled(True)
                     
-                    
-    def exifInfoDisp(self):
-        try:
-            exifInfo = ExifInfo(self.picture_name, self.crs)
-            exifInfo.setWindowFlag(Qt.WindowStaysOnTopHint)
-            exifInfo.fixFocalSignal.connect(self.fixFocal)
-            exifInfo.setWindowModality(Qt.ApplicationModal)
-            exifInfo.show()
-            result = exifInfo.exec_()
-
-        except:
-            QMessageBox.warning(QWidget(), "Read - Error","Failed to load EXIF information.\nPicture may not have meta-data" )
-            
-    
+                        
     def fixFocal(self, focalPixel):
         self.paramPoseView[6] = focalPixel
         self.whoIsChecked[19] = False
@@ -429,7 +408,7 @@ class GetGCPMainWindow(QMainWindow):
                 index = self.model.index(row, i)
                 pos.append(self.model.data(index))
                 if not isinstance(pos[i], (int, float)):
-                   QMessageBox.warning(QWidget(), "Value - Error","Failed to load current point" )
+                   QMessageBox.warning(self, "Value - Error","Failed to load current point" )
                    return
 
             matrix = QTransform()
@@ -522,13 +501,14 @@ class GetGCPMainWindow(QMainWindow):
         self.ui.tableView.clearSelection()
         self.refreshPictureGCP()
         rowCount = self.model.rowCount()
-       #  try :
         # get needed inputs for pose estimation
         self.poseDialogue = Pose_dialog(self.model, self.paramPoseView, self.positionFixed, self.sizePicture, self.whoIsChecked, self.pathToData, self.picture_name, self.iface, self.crs)
         self.poseDialogue.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.poseDialogue.update.connect(self.updatePose)
-        self.poseDialogue.uiPose.buttonBox.accepted.connect(self.acceptPose)
-        self.poseDialogue.uiPose.buttonBox.rejected.connect(self.cancelPose)
+        self.poseDialogue.importUpdate.connect(self.updateWithImport)
+        if self.boolPose : 
+            self.poseDialogue.actionOnButton("E", True)
+            self.poseDialogue.actionOnButton("C", "G")
         self.poseDialogue.show()
         #result = self.poseDialogue.exec_()
         
@@ -558,36 +538,24 @@ class GetGCPMainWindow(QMainWindow):
                 self.GCPErrorPos()
                 self.getPositionInCanvas()
                 self.boolPose = True
+                self.GoToMonoplotterButton.setEnabled(True)
+                self.ui.statusbar.showMessage('You can save GCPs in .dat file or save pose estimation in KML file')
+                
                 
         except ValueError:
            QMessageBox.warning(self, "Pose Estimation- Error","Failed to estimate pose, consider to provide apriori values")
-    
-    def acceptPose(self):
-        if self.boolPose == True:
-            self.ui.statusbar.showMessage('You can save GCPs in .dat file or save pose estimation in KML file')
-            self.GoToMonoplotterButton.setEnabled(True)
-        else : 
-            self.ui.statusbar.showMessage('You need to pose an estimation')
-    
-    def cancelPose(self):
-        if hasattr(self, 'reprojectedCross'):
-            for ri in self.reprojectedCross:
-                self.canvas.scene().removeItem(ri)  
-        self.uvTableActivated = []
-        self.uvTableAll = []
-        self.refreshPictureGCP() 
-        self.lookat = [0,0,0]
-        self.upWorld = [0,0,0]    
-        self.pos = [0,0,0]
-        self.FOV = 0
-        self.roll = 0
-        self.paramPoseView[:6] = [0,0,0,0,0,0]
-        self.whoIsChecked = [True, False, False]*7
-        self.XYZUsed = None
-        self.GoToMonoplotterButton.setEnabled(False)
-        self.boolPose = False
-        self.ui.statusbar.showMessage('The pose estimation has been cancel')
+        
+    def updateWithImport(self) :
 
+            self.lookat = self.poseDialogue.lookat
+            self.upWorld = self.poseDialogue.upWorld
+            self.pos = self.poseDialogue.pos
+            self.FOV = self.poseDialogue.FOV
+            self.roll = self.poseDialogue.roll
+            self.paramPoseView = self.poseDialogue.result
+            self.whoIsChecked = self.poseDialogue.whoIsChecked
+            self.GoToMonoplotterButton.setEnabled(True)
+            
     
     def getPositionInCanvas(self):
         self.canvas.scene().removeItem(self.poseCanvas)
@@ -894,7 +862,7 @@ class GetGCPMainWindow(QMainWindow):
         discard = False
         cancel = False
         if self.model.rowCount() > 0  and fLoadName :                                           
-            QuestionBox = QMessageBox()
+            QuestionBox = QMessageBox(self)
             QuestionBox.setIcon(QMessageBox.Warning)
             QuestionBox.setWindowTitle("GCPs already present")
             QuestionBox.setText("How do you want to handle the current GCPs?")
@@ -1159,16 +1127,24 @@ class GetGCPMainWindow(QMainWindow):
         self.move(qr.topLeft())
         
     def writeKML(self, est, nord, altitude,  heading, tilt, roll, leftFOV, rightFOV, topFOV, bottomFOV, near):
-       # Write the KML 
+        # Write the KML 
        
-       #The path is the same as the one use for the initialization step
-       path = self.pathToData + "/pose.kml"
+        #The path is the same as the one use for the initialization step
+        kmlName = '/' + (self.picture_name.split(".")[0]).split("/")[-1] + '_pose.kml'
+        path = self.pathToData + kmlName
+
+        pictureName = self.picture_name.split("/")[-1]
+        picturePath = self.pathToData + "/" + pictureName
+        if os.path.exists(picturePath):
+            picturePathKML = "./" + pictureName
+        else :
+            picturePathKML = self.picture_name
        
        #Get the name of the saved KML file
-       fName = QFileDialog.getSaveFileName(self,"save file dialog" ,path,"Images (*.kml)")[0]
-       if fName:
-        f = open(fName[0], 'w')
-        f.write(
+        fName = QFileDialog.getSaveFileName(self,"save file dialog" ,path,"Images (*.kml)")[0]
+        if fName:
+            f = open(fName, 'w')
+            f.write(
 """<?xml version="1.0" encoding="utf-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <PhotoOverlay id="space-needle">
@@ -1215,10 +1191,10 @@ class GetGCPMainWindow(QMainWindow):
     </Point>
 </PhotoOverlay>
 </kml>"""  % (self.picture_name, est, nord, altitude, 
-                      heading, tilt, self.picture_name, roll,
+                      heading, tilt, picturePathKML, roll,
                       leftFOV,rightFOV,bottomFOV,topFOV,near,
                       est,nord,altitude) ) 
-        f.close()
+            f.close()
 
             
 class icon_settings(object):

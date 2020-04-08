@@ -55,6 +55,14 @@ class Ui_Exif2(object):
         self.lineFocalPixel.setReadOnly(True)
         self.lineFocalPixel.setObjectName("lineFocalPixel")
         self.gridLayout.addWidget(self.lineFocalPixel, 2, 1, 1, 1)
+        self.importXYButton = QtWidgets.QPushButton(Exif2)
+        self.importXYButton.setEnabled(False)
+        self.importXYButton.setGeometry(QtCore.QRect(20, 540, 111, 23))
+        self.importXYButton.setObjectName("importXYButton")
+        self.saveXYButton = QtWidgets.QPushButton(Exif2)
+        self.saveXYButton.setEnabled(False)
+        self.saveXYButton.setGeometry(QtCore.QRect(150, 540, 111, 23))
+        self.saveXYButton.setObjectName("saveXYButton")
 
         self.retranslateUi(Exif2)
         self.buttonBox.accepted.connect(Exif2.accept)
@@ -78,6 +86,9 @@ class Ui_Exif2(object):
         self.pushButton.setText(_translate("Exif2", "Get Focal"))
         self.label.setText(_translate("Exif2", "Diagonal Length of Sensor [mm]"))
         self.label_2.setText(_translate("Exif2", "Focal [pixel unit]"))
+        self.importXYButton.setText(_translate("Exif2", "Import Coordinate "))
+        self.saveXYButton.setText(_translate("Exif2", "Save Coordinate "))
+
 
 
 

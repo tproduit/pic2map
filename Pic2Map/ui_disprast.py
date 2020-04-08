@@ -103,7 +103,7 @@ class Ui_disprast(object):
         QtCore.QMetaObject.connectSlotsByName(disprast)
 
     def retranslateUi(self, disprast):
-        disprast.setWindowTitle(_translate("disprast", "Pose estimation - GCP Approach", None))
+        disprast.setWindowTitle(_translate("disprast", "GCP Positioning Window", None))
         self.dockWidget_2.setWindowTitle(_translate("disprast", "GCP Table", None))
 
 class TableView(QtWidgets.QTableView):
