@@ -172,10 +172,14 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         newWidth = 500
         ratio = float(newWidth)/self.Xmat.shape[1]
         newHeight = int(ratio*self.Xmat.shape[0])
+
+        imX = np.array(Image.fromarray(self.Xmat).resize((newHeight, newWidth), Image.NEAREST))
+        imY = np.array(Image.fromarray(self.Ymat).resize((newHeight, newWidth), Image.NEAREST))
+        imZ = np.array(Image.fromarray(self.Zmat).resize((newHeight, newWidth), Image.NEAREST))
         
-        imX = misc.imresize(self.Xmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
-        imY = misc.imresize(self.Ymat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
-        imZ = misc.imresize(self.Zmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
+        #imX = misc.imresize(self.Xmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
+        #imY = misc.imresize(self.Ymat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
+        #imZ = misc.imresize(self.Zmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
         
         step = 2 #jump above one pixel: fasten computation,
         sMat = np.zeros((old_div(imX.shape[0],step), old_div(imX.shape[1],step)))
@@ -324,9 +328,13 @@ class MonoplotterMainWindow(QtWidgets.QMainWindow):
         ratio = float(newWidth)/self.Xmat.shape[1]
         newHeight = int(ratio*self.Xmat.shape[0])
         
-        imX = misc.imresize(self.Xmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
-        imY = misc.imresize(self.Ymat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
-        imZ = misc.imresize(self.Zmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
+        imX = np.array(Image.fromarray(self.Xmat).resize((newHeight, newWidth), Image.NEAREST))
+        imY = np.array(Image.fromarray(self.Ymat).resize((newHeight, newWidth), Image.NEAREST))
+        imZ = np.array(Image.fromarray(self.Zmat).resize((newHeight, newWidth), Image.NEAREST))
+
+        #imX = misc.imresize(self.Xmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
+        #imY = misc.imresize(self.Ymat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
+        #imZ = misc.imresize(self.Zmat,(newHeight, newWidth), interp = 'nearest', mode = 'F')
         
         #Generate coordinate of the upper side of the image
         coordUp = []

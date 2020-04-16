@@ -22,6 +22,8 @@ from qgis.gui import *
 from .ui_drapping import Ui_drapping
 from .ortho import viewOrtho_class, orthoClass
 from scipy import misc
+from numpy import array
+from PIL import Image
 
 class drappingMain(QtWidgets.QMainWindow):
     # This Mainwindow is used to set the bounding box and the cell size of the raster extracted
@@ -104,7 +106,9 @@ class drappingMain(QtWidgets.QMainWindow):
             
             
             #Load image
-            image = misc.imread(self.picture_name)
+
+            image = Image.open(self.picture_name)
+            image = array(image)
             print((self.picture_name, 'self.picture_name'))
             print((image.shape, 'shape'))
             

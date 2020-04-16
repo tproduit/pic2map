@@ -21,16 +21,17 @@ June 2019
 
 # Installation
 
-The plugin was tested with QGIS 3.4.
+The plugin was tested with QGIS 3.12.
  
-OpenGL is required to show the 3D view. To install openGL:
+OpenGL and piexif are required to use this extension. To install the libraries:
 
 ```
 python -m pip install pyOpenGL
 python -m pip install pyOpenGL_accelerate
+python -m pip install piexif
 ```
 
-OpenGL must be installed from the Python installed for QGIS. For instance `C:\OSGeo4W64\apps\Python37`
+OpenGL and piexif must be installed from the Python installed for QGIS. For instance `C:\OSGeo4W64\apps\Python37`
 
 You can download the plugin directly from the QGIS plugin repository.
 
@@ -209,7 +210,7 @@ You can press on `label settings` for controlling label appearance.
 ![Vector Overlay](images/visualisation.png)
 
 ## Measurements
-The monoplotter can be clicked with **`Ctrl+click`**. 
+The monoplotter can be clicked with **`Click`**. 
 You can choose to measure objects in the map plane (2D) or in 3D (on the DEM surface).
 
 The measure tool doesn't measure directly in the picture but projects the click of the mouse in the canvas. 

@@ -58,7 +58,7 @@ class Pose_dialog(QtWidgets.QDialog):
         self.paramPosIni = paramPosIni
         self.iface = iface
         self.crs = crs
-                
+        self.result = paramPosIni
         self.uiPose.commandLinkButton.clicked.connect(self.estimatePose)
         self.uiPose.reportButton.clicked.connect(self.showReportOnGCP)
         self.uiPose.importParamButton.clicked.connect(self.importPositionCamera)
@@ -127,12 +127,20 @@ class Pose_dialog(QtWidgets.QDialog):
             QMessageBox.warning(self, "Read - Error","Failed to load EXIF information.\nPicture may not have meta-data" )
         
     def importXYButtonPress(self):
-        self.uiPose.XPosLine.setText(str(round(self.exifInfo.transformCoord[0][0],3)))
-        self.uiPose.XPosIni.setChecked(True)
-        self.uiPose.YPosLine.setText(str(round(self.exifInfo.transformCoord[0][1],3)))
-        self.uiPose.YPosIni.setChecked(True)
-        self.uiPose.ZPosLine.setText(str(round(self.exifInfo.transformCoord[1],3)))
-        self.uiPose.ZPosIni.setChecked(True)
+        for item in self.exifInfo.transformCoord : 
+            if item[1] == "pos" :
+                self.uiPose.XPosLine.setText(str(round(item[0][0],3)))
+                self.uiPose.XPosIni.setChecked(True)
+                self.uiPose.YPosLine.setText(str(round(item[0][1],3)))
+                self.uiPose.YPosIni.setChecked(True)
+            elif item[1] == "alt" :
+                self.uiPose.ZPosLine.setText(str(round(item[0],3)))
+                self.uiPose.ZPosIni.setChecked(True)
+
+            elif item [1] == "heading" :
+                self.uiPose.headingLine.setText(str(round(item[0],3)))
+                self.uiPose.headingIni.setChecked(True)
+        
         self.refreshButton()
     
     def saveXYButtonPress(self):
@@ -166,11 +174,17 @@ class Pose_dialog(QtWidgets.QDialog):
         latitude = ( (intLat, 1), ( int(latdec), valMult ), (0, 1) ) 
         altitude = (int(self.result[2]), 1)
         
+        intHeading = int(self.result[4]*1000) 
+        heading = (intHeading, 1000)
+        refHeading = 'T'
+        
         exifInfo['GPS'][piexif.GPSIFD.GPSLatitudeRef] = refLat
         exifInfo['GPS'][piexif.GPSIFD.GPSLatitude] = latitude
         exifInfo['GPS'][piexif.GPSIFD.GPSLongitudeRef] = refLong
         exifInfo['GPS'][piexif.GPSIFD.GPSLongitude] = longitude
         exifInfo['GPS'][piexif.GPSIFD.GPSAltitude] = altitude
+        exifInfo['GPS'][piexif.GPSIFD.GPSImgDirection] = heading
+        exifInfo['GPS'][piexif.GPSIFD.GPSImgDirectionRef] = refHeading
         exif_bytes = piexif.dump(exifInfo)
         img.save(self.picture_name, "jpeg", exif=exif_bytes)
 
@@ -291,6 +305,43 @@ class Pose_dialog(QtWidgets.QDialog):
                 #Incrementation of the indice of the parameters (each 3 button)
                 indice += 1
             
+        if list(parameter_bool[:7]) == [0]*7 : 
+    
+            tilt = parameter_list[3]
+            heading = parameter_list[4]
+            swing = parameter_list[5]
+
+            R = zeros((3,3))
+            R[0,0] = -cos(heading)*cos(swing)-sin(heading)*cos(tilt)*sin(swing)
+            R[0,1] =  sin(heading)*cos(swing)-cos(heading)*cos(tilt)*sin(swing) 
+            R[0,2] = -sin(tilt)*sin(swing)
+            R[1,0] =  cos(heading)*sin(swing)-sin(heading)*cos(tilt)*cos(swing)
+            R[1,1] = -sin(heading)*sin(swing)-cos(heading)*cos(tilt)*cos(swing) 
+            R[1,2] = -sin(tilt)*cos(swing)
+            R[2,0] = -sin(heading)*sin(tilt)
+            R[2,1] = -cos(heading)*sin(tilt)
+            R[2,2] =  cos(tilt)
+
+            dirCam = array([0,0,-parameter_list[6]])
+            upCam = array([0,-1,0])
+            
+            dirWorld = dot(linalg.inv(R),dirCam.T)
+            lookat_temp = array(dirWorld)+array([parameter_list[0], parameter_list[1] , parameter_list[2]])
+            upWorld_temp = dot(linalg.inv(R),upCam.T) 
+
+            tilt = (parameter_list[3]*180)/pi
+            heading = (parameter_list[4]*180)/pi 
+            swing = (parameter_list[5]*180)/pi 
+            
+            self.pos = [parameter_list[0], parameter_list[2], parameter_list[1]]
+            self.FOV = old_div((2*arctan(float(self.sizePicture[1]/2.0)/parameter_list[6]))*180,pi)
+            self.roll = arcsin(-sin(tilt)*sin(swing))
+            self.lookat = array([lookat_temp[0], lookat_temp[2], lookat_temp[1]])
+            self.upWorld = array([upWorld_temp[0], upWorld_temp[2], upWorld_temp[1]])
+            self.result = [parameter_list[0], parameter_list[1], parameter_list[2], tilt, heading, swing, parameter_list[6]]
+            self.whoIsChecked = [False, True, False]*7 
+            self.importUpdate.emit()
+            return
 
             
                 
@@ -918,7 +969,7 @@ class Pose_dialog(QtWidgets.QDialog):
                 self.roll = arcsin(-sin(tilt)*sin(swing))
                 self.lookat = array([lookat_temp[0], lookat_temp[2], lookat_temp[1]])
                 self.upWorld = array([upWorld_temp[0], upWorld_temp[2], upWorld_temp[1]])
-                self.result = [-fieldValue[0], fieldValue[1], fieldValue[2], tilt, heading, swing, fieldValue[6]]
+                self.result = [-fieldValue[0], fieldValue[1], fieldValue[2], fieldValue[3], fieldValue[4], fieldValue[5], fieldValue[6]]
                 self.whoIsChecked = whoToCheck 
                 self.importUpdate.emit()
             
@@ -964,7 +1015,7 @@ class Pose_dialog(QtWidgets.QDialog):
             
             #Create projection
             camPosSRS = osr.SpatialReference()
-            epsg = int(self.crs.authid().split(':')[1])
+            epsg = int(self.crs.postgisSrid())
             camPosSRS.ImportFromEPSG(epsg)#2056)
             
             outLayer = outDataSource.CreateLayer(filename, camPosSRS, geom_type = ogr.wkbPoint)

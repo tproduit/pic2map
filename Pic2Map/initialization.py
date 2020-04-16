@@ -26,6 +26,7 @@ from osgeo import gdal
 class Initialization_dialog(QtWidgets.QDialog):
     def __init__(self, iface):
         QtWidgets.QDialog.__init__(self)
+        # super(Initialization_dialog, self).__init__(iface.mainWindow())
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         #self.center()

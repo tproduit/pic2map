@@ -60,9 +60,7 @@ class Pic2Map(object):
     def initGui(self):
 
         # create action that will start plugin configuration
-        name = os.path.dirname(os.path.abspath(__file__))
-        url = name + "/icon.png"
-        url.replace("\\","/")
+        url = ":/plugins/Pic2Map/icon.png"
         self.action = QAction(QIcon(url), "Pic2Map",self.iface.mainWindow())
         self.action.triggered.connect(self.run)
 
@@ -79,6 +77,12 @@ class Pic2Map(object):
 
     def run(self):
         self.checkRequirments()
+
+        #app = QgsApplication([], True)
+        #app = QApplication(sys.argv)
+        #app.initQgis()
+        #app.applicationStateChanged.connect(self.hideQGIS)
+        
         if not self.isSupported:
                 QMessageBox.critical(QWidget(), "Version - Error","system configuration insufficient" )
                 return
@@ -89,11 +93,13 @@ class Pic2Map(object):
         # the ortho-image if used
         # the approach chosen for georeferencing
         self.ini = Initialization_dialog(self.iface)
-        self.ini.setWindowFlag(Qt.WindowStaysOnTopHint)
-        #self.ini.setWindowModality(Qt.ApplicationModal)
+        self.ini.setWindowFlags(Qt.WindowStaysOnTopHint)
+        #self.ini.setWindowModality(Qt.WindowModal)
         self.ini.ui.buttonBox.accepted.connect(self.startSequence)
         self.ini.show()
       
+    #def hideQGIS(stateValue):
+        #print(stateValue)
 
     def startSequence(self) :   
         # The data are all given at the beginning

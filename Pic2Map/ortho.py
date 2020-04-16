@@ -112,7 +112,7 @@ class viewOrtho_class(QGLWidget):
             y = float(self.viewport_new[3]) -event.y()
             z = glReadPixels( x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
             result = gluUnProject( x, y, z, self.modelview_new, self.projection_new, self.viewport_new)
-            # Dragging the bounding box can only be done from up-left to right down corner
+             
             if result[0]<self.initBoxResult[0] and result[2]<self.initBoxResult[1] :
                 self.boxLeftUp = self.initBoxResult
                 self.boxRightDown = [result[0],result[2]]

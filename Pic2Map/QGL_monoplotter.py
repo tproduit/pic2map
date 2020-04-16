@@ -111,22 +111,17 @@ class QGLMonoplotter(QGLWidget):
          self.symbolSize = symbolSize
          
     def mousePressEvent(self,event):
-         self.last_pos = event.pos()
-         modifiers = QApplication.keyboardModifiers()
-         print('mousePress')
-         if(modifiers == Qt.ControlModifier):
-                 print ('if1')
-                 x = event.x()
-                 self.currentEditX = x
-                 y = float(self.viewport[3]) -event.y()
-                 self.currentEditY = y
-                 z = 0.0
-                 z = glReadPixels( x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
-                 result = gluUnProject( x, y, z, self.modelview, self.projection, self.viewport)
-                 if z != 1.0:
-                    print('if2')
-                    # If the click is done out of the DEM (above horizon), z is equal to 1.0
-                    self.blow.emit([-result[0],result[2], event.button()])
+        self.last_pos = event.pos()
+        x = event.x()
+        self.currentEditX = x
+        y = float(self.viewport[3]) -event.y()
+        self.currentEditY = y
+        z = 0.0
+        z = glReadPixels( x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
+        result = gluUnProject( x, y, z, self.modelview, self.projection, self.viewport)
+        if z != 1.0:
+            # If the click is done out of the DEM (above horizon), z is equal to 1.0
+            self.blow.emit([-result[0],result[2], event.button()])
 
     def leaveEvent(self, event):
          self.pinkCrossSignal.emit([0,0,0])

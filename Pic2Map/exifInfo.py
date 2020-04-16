@@ -34,7 +34,7 @@ class ExifInfo(QDialog):
         self.imageName = imageName
         self.crs = crs
         self.FocalLength = None
-        self.transformCoord = None
+        self.transformCoord = []
         
         self.setTextBrowser()
 
@@ -74,23 +74,48 @@ class ExifInfo(QDialog):
                 if TAGS.get(k) == 'FocalLength':
                     self.FocalLength = v
             text = ''
+            coordN = False
+            coordE = False
+            valAlt = False
+            isHeading = False
             if dict != None:
-                Nord = dict[2][0][0]+dict[2][1][0]/float(dict[2][1][1])/60.0
-                if dict[1] == "S":
-                    Nord *= -1
-                Est = dict[4][0][0]+dict[4][1][0]/float(dict[4][1][1])/60.0
-                if dict[3] == "W":
-                    Est *= -1
-                altitude = dict[6][0]/ dict[6][1] 
+                if dict[2] :
+                    Nord = dict[2][0][0]+dict[2][1][0]/float(dict[2][1][1])/60.0
+                    if dict[1] == "S":
+                        Nord *= -1
+                    coordN = True
+                    
+                if dict[4] :
+                    Est = dict[4][0][0]+dict[4][1][0]/float(dict[4][1][1])/60.0
+                    if dict[3] == "W":
+                        Est *= -1
+                    coordE = True
+                
+                if dict[6] :
+                    altitude = dict[6][0]/ dict[6][1]
+                    valAlt = True 
+
+                if dict[17] :
+                    heading = dict[17][0] / dict[17][1]
+                    isHeading = True
                 crsT = "EPSG:" + str(self.crs.postgisSrid())
                 crsTarget = QgsCoordinateReferenceSystem(crsT)
                 crsSource = QgsCoordinateReferenceSystem("EPSG:4326")
                 xform = QgsCoordinateTransform(crsSource, crsTarget, QgsProject.instance())
-                LocalPos = xform.transform(QgsPointXY(Est,Nord)) 
-                self.transformCoord = (LocalPos, altitude)
-                text += 'Longitude: ' + str(LocalPos[0])
-                text += '\nLatitude: ' + str(LocalPos[1])
-                text += '\nAltitude: ' + str(altitude)
+                if coordN and coordE :
+                    LocalPos = xform.transform(QgsPointXY(Est,Nord)) 
+                    self.transformCoord.append([LocalPos, "pos"])  
+                    text += 'Longitude: ' + str(LocalPos[0])
+                    text += '\nLatitude: ' + str(LocalPos[1])
+                    
+                if valAlt :
+                    self.transformCoord.append([altitude, "alt"])
+                    text += '\nAltitude: ' + str(altitude)
+
+                if isHeading : 
+                    self.transformCoord.append([heading, "heading"])
+                    text += '\nHeading: ' + str(heading)
+                
                 text += '\n\n'
  
             text += '============================\n'
