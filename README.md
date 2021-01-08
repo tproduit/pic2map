@@ -1,3 +1,5 @@
+# Funding
+This project is currently seeking funding to improve and update the plugin. If you are a regular user please consider to contact us (https://github.com/tproduit ).
 
 # Documentation
 
